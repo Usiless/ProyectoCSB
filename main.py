@@ -4,7 +4,10 @@ import os
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-picFolder 
+
+LogoCarpeta = os.path.join('static', 'img')
+app.config['UPLOAD_FOLDER'] = LogoCarpeta
+Logo = os.path.join(app.config['UPLOAD_FOLDER'], 'LogoV2.svg')
 
 
 
@@ -16,19 +19,25 @@ def login():
         if request.form['password'] == '12':
             session['user'] = request.form['username']
             return redirect(url_for('protected'))
-    return render_template('login.html')
+    return render_template('login.html', imag=Logo)
 
 
 @app.route('/protected')
 def protected():
     if g.user:
-        return render_template('index.html', user=session['user'])
+        return render_template('index.html', user=session['user'], imag=Logo)
     return redirect(url_for('login'))
 
 
-@app.route('/about/')
+@app.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html', imag=Logo)
+
+
+@app.route('/dropsession')
+def dropsession():
+    session.pop('user', None)
+    return render_template('login.html')
 
 
 @app.before_request
@@ -38,11 +47,6 @@ def before_request():
     if 'user' in session:
         g.user = session['user']
 
-
-@app.route('/dropsession')
-def dropsession():
-    session.pop('user', None)
-    return render_template('login.html')
 
 if __name__ == '__main__':
     app.run(debug = True)

@@ -12,7 +12,7 @@
         <div class="container">
             <a href="#" class="navbar-brand mb-0 h1">
                 <img class="d-line-block align-top"
-                     src="LogoV2.svg"
+                     src="{{imag}}"
                      width="30" height="30" />
                 Colegio San Blas
             </a>
@@ -60,9 +60,29 @@
                 </ul>
             </div>
         </div>
+        <form class="d-flex">
+            <button class="btn btn-primary" onclick="window.location = 'http://localhost:5000/dropsession'" type="submit">Cerrar sesion</button>
+        </form>
     </nav>
     <div class="content">
         {% block content %} {% endblock %}
+    </div>
+    <div class="b-example-divider"></div>
+    <div class="container">
+        <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+            <div class="col-md-4 d-flex align-items-center">
+                <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
+                <img src="{{imag}}"width="30" height="30" ><use xlink:href="#bootstrap"></use></img>
+                </a>
+                <span class="mb-3 mb-md-0 text-muted">2022, Colegio San Blas</span>
+            </div>
+
+            <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+                <li class="ms-3"><a class="text-muted" href="#"><img class="bi" width="24" height="24"><use href="#twitter"></use></a></li>
+                <li class="ms-3"><a class="text-muted" href="#"><img class="bi" width="24" height="24"><use href="#instagram"></use></a></li>
+                <li class="ms-3"><a class="text-muted" href="#"><img class="bi" width="24" height="24"><use href="#facebook"></use></a></li>
+            </ul>
+        </footer>
     </div>
 </body>
 </html>
