@@ -1,14 +1,13 @@
-#from crypt import methods
-from flask import Flask, session, render_template, request, redirect, g, url_for
+﻿from flask import Flask, session, render_template, request, redirect, g, url_for
 import os
+import sys
+
+# SB ADMIN boostrap
+# Charisma
+#orm flask
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-
-LogoCarpeta = os.path.join('static', 'img')
-app.config['UPLOAD_FOLDER'] = LogoCarpeta
-Logo = os.path.join(app.config['UPLOAD_FOLDER'], 'LogoV2.svg')
-
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -19,19 +18,28 @@ def login():
         if request.form['password'] == '12':
             session['user'] = request.form['username']
             return redirect(url_for('protected'))
-    return render_template('login.html', imag=Logo)
+    return render_template('login.html')
 
 
 @app.route('/protected')
 def protected():
     if g.user:
-        return render_template('index.html', user=session['user'], imag=Logo)
+        return render_template('index.html', user=session['user'])
     return redirect(url_for('login'))
 
 
 @app.route('/about')
 def about():
-    return render_template('about.html', imag=Logo)
+    if g.user:
+        return render_template('about.html', user=session['user'])
+    return render_template('login.html')
+
+
+@app.route('/news')
+def news():
+    if g.user:
+        return render_template('news.html', user=session['user'])
+    return render_template('login.html')
 
 
 @app.route('/dropsession')
