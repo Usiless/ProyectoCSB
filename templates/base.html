@@ -1,5 +1,5 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar navbar-expand-md navbar-dark" style="background-color: #01013D">
         <div class="container">
-            <a href="{{url_for('protected')}}" class="navbar-brand mb-0 h1">
+            <a href="{{url_for('home')}}" class="navbar-brand mb-0 h1">
                 <img class="d-line-block align-top"
                      src="{{url_for('static', filename='img/LogoV2.svg')}}"
                      width="30" height="30" />Colegio San Blas
@@ -59,13 +59,12 @@
             </div>
         </div>
         <form class="d-flex">
-            <button class="btn btn-primary" href="onclwindow.location = 'http://localhost:5000/dropsession'"" type="submit">Cerrar sesion</button>
+            <a class="btn btn-primary" href="{{url_for('logout')}}">Cerrar sesion</a>
         </form>
     </nav>
     <div class="content">
         {% block content %} {% endblock %}
     </div>
-    <div class="b-example-divider"></div>
     <div class="container">
         <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
             <div class="col-md-4 d-flex align-items-center">

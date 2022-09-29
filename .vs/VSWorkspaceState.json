@@ -1,11 +1,12 @@
 {
   "ExpandedNodes": [
     "",
+    "\\src",
     "\\static",
-    "\\static\\css",
-    "\\static\\img",
+    "\\static\\DataTables",
+    "\\static\\DataTables\\Buttons-2.2.3",
+    "\\static\\DataTables\\Buttons-2.2.3\\js",
     "\\templates"
   ],
-  "SelectedNode": "\\main.py",
   "PreviewInSolutionExplorer": false
 }

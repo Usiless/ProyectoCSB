@@ -8,13 +8,23 @@
 	</head>
 	<body>
 		<div class="text-center">
-			<form action="/", method = "post">
-				<img class="mt-4" src="{{url_for('static', filename='img/LogoV2.svg')}}" width="90" height="90"/> 
+			<form action="/login" , method="post">
+				<img class="mt-4" src="{{url_for('static', filename='img/LogoV2.svg')}}" width="90" height="90" />
+				{% with messages = get_flashed_messages() %}
+				{% if messages %}
+				{% for message in messages %}
+				<div class="alert alert-primary alert-dismissable" role="alert">
+					<strong>{{message}}</strong>
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+				</div>
+				{% endfor %}
+				{% endif %}
+				{% endwith%}
 				<h1 class="h3 mb-3 font-weight-normal">Por favor, inicie sesión</h1>
 				<label for="correoE" class="visually-hidden">Correro electrónico</label>
-				<input name="username" type="email" id="correoEl"  placeholder="Correo electrónico" required autofocus><br>
+				<input name="username" type="username" id="correoEl" placeholder="Correo electrónico" required autofocus><br>
 				<label for="contras" class="visually-hidden">Contraseña</label>
-				<input name="password" class="mt-1"type="password" id="contras"  placeholder="Contraseña" required autofocus><br>
+				<input name="password" class="mt-1" type="password" id="contras" placeholder="Contraseña" required autofocus><br>
 				<div class="checkbox">
 					<label>
 						<input type="checkbox" value="remember-me"> Mantener sesión abierta
