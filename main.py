@@ -78,7 +78,7 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/profesores', methods=['GET', 'POST'])
+@app.route('/users', methods=['GET', 'POST'])
 def profesores():
     columnas = "username, fullname"
     tabla = "users"
@@ -92,7 +92,7 @@ def profesores():
             f'{col[1]}': row[1],
             })
     response = {'data': data,}
-    return render_template('table.html', title="Profesores", data=response)
+    return render_template('table.html', title="Usuarios", data=response)
 
 
 def get_tabla(columnas,col,tabla,orden):

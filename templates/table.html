@@ -84,6 +84,9 @@ $(document).ready(function () {
     }
     $('#tabla').DataTable({
         dom: 'Bfrtip',
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json'
+        },
         data: data.data,
         columns: columns,
         buttons: [
@@ -100,6 +103,16 @@ $(document).ready(function () {
                 text: 'Borrar'
             }
         ]
+    });
+    var table = $('#tabla').DataTable();
+
+    $('#tabla tbody').on('click', 'tr', function () {
+        if ($(this).hasClass('selected')) {
+            $(this).removeClass('selected');
+        } else {
+            table.$('tr.selected').removeClass('selected');
+            $(this).addClass('selected');
+        }
     });
  
 });
