@@ -2,12 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\models",
-    "\\models\\entities",
-    "\\static",
     "\\static\\DataTables",
     "\\static\\DataTables\\DataTables-1.12.1",
     "\\templates"
   ],
-  "SelectedNode": "\\main.py",
+  "SelectedNode": "\\templates\\base.html",
   "PreviewInSolutionExplorer": false
 }
