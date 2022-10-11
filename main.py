@@ -79,20 +79,23 @@ def logout():
 
 
 @app.route('/users', methods=['GET', 'POST'])
-def profesores():
+def users():
     columnas = "username, fullname"
     tabla = "users"
     orden = "username"
     col = ["Usuario", "Nombre y apellido"]
-    lista = get_tabla(columnas,col,tabla,orden)
-    data = []
-    for row in lista:
-        data.append({
-            f'{col[0]}': row[0],
-            f'{col[1]}': row[1],
-            })
-    response = {'data': data,}
+    response = get_tabla(columnas,col,tabla,orden)
     return render_template('table.html', title="Usuarios", data=response)
+
+
+@app.route('/materias', methods=['GET', 'POST'])
+def materias():
+    columnas = "nombre"
+    tabla = "materias"
+    orden = "idmateria"
+    col = ["Nombre"]
+    response = get_tabla(columnas,col,tabla,orden)
+    return render_template('table.html', title="Materias", data=response)
 
 
 def get_tabla(columnas,col,tabla,orden):
@@ -100,7 +103,36 @@ def get_tabla(columnas,col,tabla,orden):
     cursor.execute(f"SELECT {columnas} FROM {tabla} ORDER BY {orden} asc;")
     lista = cursor.fetchall()
     cursor.close()
-    return lista
+    data = "[{"
+    comilla = f"{chr (34)}"
+    c = 1
+    if lista:
+        for row in lista:
+            for i in range(0, len(lista[0])):
+                data = data + comilla + str(col[i]) + comilla + ": "
+                if type(row[i]) == str:
+                    data = data + comilla + row[i] + comilla
+                else:
+                    data = data + str(row[i])
+                if not i == (len(lista[0])-1):
+                    data = data + ", "
+            if c < (len(lista)):
+                data = data + "}" + ", {"
+            c+=1
+        data = data + "}]"
+    else:
+        data = []
+        for i in range(0, len(col[0])):
+            data.append({
+                f'{col[i]}': "",
+            })
+        a = str(str(data).replace("}, {", ", "))
+        a = str(str(a).replace("'", f"{chr (34)}"))
+        data = a
+    print(lista)
+    print(data)
+    response = {'data': json.loads(data),}
+    return response
     
 
 
