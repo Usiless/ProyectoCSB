@@ -3,11 +3,10 @@
     "",
     "\\models",
     "\\models\\entities",
-    "\\static",
-    "\\static\\DataTables",
-    "\\static\\DataTables\\DataTables-1.12.1",
-    "\\templates"
+    "\\static\\js",
+    "\\templates",
+    "\\templates\\Tablas"
   ],
-  "SelectedNode": "\\main.py",
+  "SelectedNode": "\\templates\\login.html",
   "PreviewInSolutionExplorer": false
 }

@@ -1,4 +1,5 @@
-﻿from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
+﻿from http.client import responses
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_mysqldb import MySQL
 from flask_login import LoginManager, login_user, logout_user, login_required
 import mysql.connector
@@ -8,20 +9,17 @@ import os
 from config import config
 
 from models.ModelUser import ModelUser
-from models.ModelUser import ModelUser
 from models.entities.User import User
+from model import Materia
+
 # SB ADMIN boostrap
 # Charisma
 # orm flask
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+app.config.from_object(config['development'])
 db = MySQL(app)
-mydb = mysql.connector.connect(    
-    host = 'localhost',
-    user = 'root',
-    password = '',
-    database = 'csb_prov')
 login_manager_app = LoginManager(app)
 
 
@@ -79,28 +77,68 @@ def logout():
 
 
 @app.route('/users', methods=['GET', 'POST'])
-def profesores():
+def users():
     columnas = "username, fullname"
     tabla = "users"
     orden = "username"
     col = ["Usuario", "Nombre y apellido"]
-    lista = get_tabla(columnas,col,tabla,orden)
-    data = []
-    for row in lista:
-        data.append({
-            f'{col[0]}': row[0],
-            f'{col[1]}': row[1],
-            })
-    response = {'data': data,}
+    response = get_tabla(columnas,col,tabla,orden)
     return render_template('table.html', title="Usuarios", data=response)
 
 
+@app.route('/materias', methods=['GET', 'POST'])
+def materias():
+    columnas = "nombre"
+    tabla = "materias"
+    orden = "idmateria"
+    col = ["Nombre"]
+    response = get_tabla(columnas,col,tabla,orden)
+    return render_template('table.html', title="Materias", data=response)
+
+@app.route('/new_materias', methods=['GET', 'POST'])
+def add_materias():
+    if request.method == "POST":
+        materia = Materia(0, request.form["nombre_mat"], request.form["descript_mat"])
+        Materia.nuevo(db, materia)
+        return redirect(url_for('materias'))
+    else: 
+        return render_template('/Tablas/materias.html', title="Materias")
+
+
 def get_tabla(columnas,col,tabla,orden):
-    cursor = mydb.cursor()
+    cursor = db.connection.cursor()
     cursor.execute(f"SELECT {columnas} FROM {tabla} ORDER BY {orden} asc;")
     lista = cursor.fetchall()
     cursor.close()
-    return lista
+    data = "[{"
+    comilla = f"{chr (34)}"
+    c = 1
+    if lista:
+        for row in lista:
+            for i in range(0, len(lista[0])):
+                data = data + comilla + str(col[i]) + comilla + ": "
+                if type(row[i]) == str:
+                    data = data + comilla + row[i] + comilla
+                else:
+                    data = data + str(row[i])
+                if not i == (len(lista[0])-1):
+                    data = data + ", "
+            if c < (len(lista)):
+                data = data + "}" + ", {"
+            c+=1
+        data = data + "}]"
+    else:
+        data = []
+        for i in range(0, len(col[0])):
+            data.append({
+                f'{col[i]}': "",
+            })
+        a = str(str(data).replace("}, {", ", "))
+        a = str(str(a).replace("'", f"{chr (34)}"))
+        data = a
+    response = {'data': json.loads(data),
+                'tabla': f"{tabla}",}
+    return response
     
 
 
@@ -113,7 +151,6 @@ def status_404(error):
 
 
 if __name__ == '__main__':
-    app.config.from_object(config['development'])
     app.register_error_handler(401, status_401)
     app.register_error_handler(404, status_404)
     app.run()
