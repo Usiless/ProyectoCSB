@@ -1,4 +1,5 @@
-﻿from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
+﻿from http.client import responses
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_mysqldb import MySQL
 from flask_login import LoginManager, login_user, logout_user, login_required
 import mysql.connector
@@ -8,20 +9,17 @@ import os
 from config import config
 
 from models.ModelUser import ModelUser
-from models.ModelUser import ModelUser
 from models.entities.User import User
+from model import Materia
+
 # SB ADMIN boostrap
 # Charisma
 # orm flask
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+app.config.from_object(config['development'])
 db = MySQL(app)
-mydb = mysql.connector.connect(    
-    host = 'localhost',
-    user = 'root',
-    password = '',
-    database = 'csb_prov')
 login_manager_app = LoginManager(app)
 
 
@@ -97,9 +95,18 @@ def materias():
     response = get_tabla(columnas,col,tabla,orden)
     return render_template('table.html', title="Materias", data=response)
 
+@app.route('/new_materias', methods=['GET', 'POST'])
+def add_materias():
+    if request.method == "POST":
+        materia = Materia(0, request.form["nombre_mat"], request.form["descript_mat"])
+        Materia.nuevo(db, materia)
+        return redirect(url_for('materias'))
+    else: 
+        return render_template('/Tablas/materias.html', title="Materias")
+
 
 def get_tabla(columnas,col,tabla,orden):
-    cursor = mydb.cursor()
+    cursor = db.connection.cursor()
     cursor.execute(f"SELECT {columnas} FROM {tabla} ORDER BY {orden} asc;")
     lista = cursor.fetchall()
     cursor.close()
@@ -129,9 +136,8 @@ def get_tabla(columnas,col,tabla,orden):
         a = str(str(data).replace("}, {", ", "))
         a = str(str(a).replace("'", f"{chr (34)}"))
         data = a
-    print(lista)
-    print(data)
-    response = {'data': json.loads(data),}
+    response = {'data': json.loads(data),
+                'tabla': f"{tabla}",}
     return response
     
 
@@ -145,7 +151,6 @@ def status_404(error):
 
 
 if __name__ == '__main__':
-    app.config.from_object(config['development'])
     app.register_error_handler(401, status_401)
     app.register_error_handler(404, status_404)
     app.run()

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -30,27 +30,60 @@
                         <a href="{{url_for('news')}}" class="nav-link active">Avisos</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a href="#" 
-                           class="nav-link dropdown-toggle" 
+                        <a href="#"
+                           class="nav-link dropdown-toggle"
+                           id="navbarDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">Personas</a>
+                        <ul class="dropdown-menu"
+                            aria-labelledby="navbarDropdown">
+                            <li>
+                                <a href="#"
+                                   class="dropdown-item">Alumnos</a>
+                            </li>
+                            <li>
+                                <a href="#"
+                                   class="dropdown-item">Tutores</a>
+                            </li>
+                            <li>
+                                <a href=""
+                                   class="dropdown-item">Profesores</a>
+                            </li>
+                            <li>
+                                <a href="#"
+                                   class="dropdown-item">Personal</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">Tareas</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#"
+                           class="nav-link dropdown-toggle"
                            id="navbarDropdown"
                            role="button"
                            data-bs-toggle="dropdown"
                            aria-expanded="false">Administración</a>
                         <ul class="dropdown-menu"
                             aria-labelledby="navbarDropdown">
-                            <li><a href="#" 
-                                   class="dropdown-item">Alumnos</a></li>
-                            <li><a href="#" 
-                                   class="dropdown-item">Profesores</a></li>
-                            <li><a href="#" 
-                                   class="dropdown-item">Personal</a></li>
+                            <li>
+                                <a href="{{url_for('materias')}}"
+                                   class="dropdown-item">Materias</a>
+                            </li>
+                            <li>
+                                <a href=""
+                                   class="dropdown-item">Grados</a>
+                            </li>
+                            <li>
+                                <a href="#"
+                                   class="dropdown-item">Parámetros</a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">Tareas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('about') }}" class="nav-link">Acerca de</a>
+                        <a href="{{ url_for('about') }}" class="nav-link">Acerca</a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">Planillas</a>
@@ -62,6 +95,19 @@
             <a class="btn btn-primary" href="{{url_for('logout')}}">Cerrar sesion</a>
         </form>
     </nav>
+    <div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-info alert-dismissible">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <strong>{{message[1].title}}</strong> {{message[1].detalle}}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
     <div class="content">
         {% block content %} {% endblock %}
     </div>
@@ -69,7 +115,7 @@
         <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
             <div class="col-md-4 d-flex align-items-center">
                 <a href="/" class="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-                <img src="{{url_for('static', filename='img/LogoV2.svg')}}"width="30" height="30" ><use xlink:href="#bootstrap"></use></img>
+                    <img src="{{url_for('static', filename='img/LogoV2.svg')}}" width="30" height="30"><use xlink:href="#bootstrap"></use></img>
                 </a>
                 <span class="mb-3 mb-md-0 text-muted">2022, Colegio San Blas</span>
             </div>

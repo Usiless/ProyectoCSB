@@ -2,8 +2,11 @@
   "ExpandedNodes": [
     "",
     "\\models",
-    "\\templates"
+    "\\models\\entities",
+    "\\static\\js",
+    "\\templates",
+    "\\templates\\Tablas"
   ],
-  "SelectedNode": "\\main.py",
+  "SelectedNode": "\\templates\\login.html",
   "PreviewInSolutionExplorer": false
 }
