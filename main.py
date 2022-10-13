@@ -78,22 +78,27 @@ def logout():
 
 @app.route('/users', methods=['GET', 'POST'])
 def users():
-    columnas = "username, fullname"
+    columnas = "id, username, fullname"
     tabla = "users"
     orden = "username"
-    col = ["Usuario", "Nombre y apellido"]
+    col = ["ID", "Usuario", "Nombre y apellido"]
     response = get_tabla(columnas,col,tabla,orden)
+    print(response)
     return render_template('table.html', title="Usuarios", data=response)
-
 
 @app.route('/materias', methods=['GET', 'POST'])
 def materias():
-    columnas = "nombre"
+    columnas = "idmateria, nombre"
     tabla = "materias"
     orden = "idmateria"
-    col = ["Nombre"]
+    col = ["ID", "Nombre"]
     response = get_tabla(columnas,col,tabla,orden)
     return render_template('table.html', title="Materias", data=response)
+
+@app.route('/materias/<id>', methods=['GET', 'POST'])
+def ver_materias(id):
+    return Materia.ver(db,id)
+
 
 @app.route('/new_materias', methods=['GET', 'POST'])
 def add_materias():
@@ -106,39 +111,45 @@ def add_materias():
 
 
 def get_tabla(columnas,col,tabla,orden):
-    cursor = db.connection.cursor()
-    cursor.execute(f"SELECT {columnas} FROM {tabla} ORDER BY {orden} asc;")
-    lista = cursor.fetchall()
-    cursor.close()
-    data = "[{"
-    comilla = f"{chr (34)}"
-    c = 1
-    if lista:
-        for row in lista:
-            for i in range(0, len(lista[0])):
-                data = data + comilla + str(col[i]) + comilla + ": "
-                if type(row[i]) == str:
-                    data = data + comilla + row[i] + comilla
-                else:
-                    data = data + str(row[i])
-                if not i == (len(lista[0])-1):
-                    data = data + ", "
-            if c < (len(lista)):
-                data = data + "}" + ", {"
-            c+=1
-        data = data + "}]"
-    else:
-        data = []
-        for i in range(0, len(col[0])):
-            data.append({
-                f'{col[i]}': "",
-            })
-        a = str(str(data).replace("}, {", ", "))
-        a = str(str(a).replace("'", f"{chr (34)}"))
-        data = a
-    response = {'data': json.loads(data),
-                'tabla': f"{tabla}",}
-    return response
+    try:
+        cursor = db.connection.cursor()
+        cursor.execute(f"SELECT {columnas} FROM {tabla} ORDER BY {orden} asc;")
+        lista = cursor.fetchall()
+        cursor.close()
+        data = "[{"
+        comilla = f"{chr (34)}"
+        c = 1
+        if lista:
+            for row in lista:
+                for i in range(0, len(lista[0])):
+                    data = data + comilla + str(col[i]) + comilla + ": "
+                    if type(row[i]) == str:
+                        data = data + comilla + row[i] + comilla
+                    else:
+                        data = data + str(row[i])
+                    if not i == (len(lista[0])-1):
+                        data = data + ", "
+                if c < (len(lista)):
+                    data = data + "}" + ", {"
+                c+=1
+            data = data + "}]"
+        else:
+            data = []
+            for i in range(0, len(col[0])):
+                data.append({
+                    f'{col[i]}': "",
+                })
+            a = str(str(data).replace("}, {", ", "))
+            a = str(str(a).replace("'", f"{chr (34)}"))
+            data = a
+        response = {'data': json.loads(data),
+                    'tabla': f"{tabla}",}
+        return response
+    except db.connection.Error as error :
+        err = {"title": "Error!",
+                "detalle":  str(error)}
+        flash(err)
+        return None
     
 
 
