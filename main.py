@@ -97,7 +97,8 @@ def materias():
 
 @app.route('/materias/<id>', methods=['GET', 'POST'])
 def ver_materias(id):
-    return Materia.ver(db,id)
+    data = Materia.ver(db,id)
+    return render_template('/Tablas/materias.html', title="Materias", data=data)
 
 
 @app.route('/new_materias', methods=['GET', 'POST'])
@@ -107,7 +108,7 @@ def add_materias():
         Materia.nuevo(db, materia)
         return redirect(url_for('materias'))
     else: 
-        return render_template('/Tablas/materias.html', title="Materias")
+        return render_template('/Tablas/materias.html', title="Materias", data="")
 
 
 def get_tabla(columnas,col,tabla,orden):

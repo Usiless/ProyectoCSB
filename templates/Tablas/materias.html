@@ -1,18 +1,32 @@
 ﻿{% extends 'base.html' %}
 {% block title %}{{title}} {% endblock %}
 {% block content %}
+<script src="{{url_for('static', filename='DataTables/jquery-3.5.1.js')}}"></script>
+
 <div class="container">
-    <form method="post">
+    <form method="post" id="myForm">
         <div class="mt-5">
             <label for="Nombre_Mat" class="form-label">Nombre de Materia</label>
-            <input type="text" class="form-control" id="Nombre_Mat" name="nombre_mat" required autofocus value="{{}}">
+            <input type="text" class="form-control" id="Nombre_Mat" name="nombre_mat" required autofocus value="{{data.nombre}}">
         </div>
         <div class="mb-3">
             <label for="Descript" class="form-label">Descripción</label>
-            <textarea class="form-control" id="Descript" rows="3" name="descript_mat"></textarea>
+            <textarea class="form-control" id="Descript" rows="3" name="descript_mat" value="{{data[2].descripcion}}"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Guardar</button>
         <input type="button" class="btn btn-danger" value="Cancelar" onclick="history.back()">
     </form>
 </div>
+<script>
+    var data = {{ data | tojson }};
+    var columns = [];
+    if (data) {
+        console.log("No está vacío");
+        console.log(data);
+        $('#myForm :input').prop('disabled', true); 
+    }
+    else {
+        console.log("Está vacío");
+    }
+</script>
 {% endblock %}

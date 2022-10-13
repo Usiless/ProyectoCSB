@@ -3,10 +3,9 @@
     "",
     "\\models",
     "\\models\\entities",
-    "\\static\\js",
     "\\templates",
     "\\templates\\Tablas"
   ],
-  "SelectedNode": "\\templates\\login.html",
+  "SelectedNode": "\\model.py",
   "PreviewInSolutionExplorer": false
 }
