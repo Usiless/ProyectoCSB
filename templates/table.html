@@ -15,8 +15,8 @@
 <script>
     var data = {{ data | tojson }};
     var columns = [];
-    var link_add = "/new_" + data.tabla
-    console.log(link_add)
+    var tabla = data.tabla
+    var link_add = "/new_" + tabla;
     if (NoneEmpty(Object.values(data.data[0]))) {
         var datos = [];
     }
@@ -59,7 +59,7 @@
            "columnDefs": [{
                "targets": 0,
                "render": function (data, type, row, meta) {
-                   return '<a href=""' + '" target="_blank">' + data + '</a>';
+                   return '<a href=/' + tabla + "/" + row.ID + ' target="_blank">' + data + '</a>';
                }
            }]
        });
