@@ -1,32 +1,61 @@
-﻿{% extends 'base.html' %}
-{% block title %}{{title}} {% endblock %}
-{% block content %}
+﻿{% extends 'base.html' %} {% block title %}{{title}} {% endblock %} {% block
+content %}
 <script src="{{url_for('static', filename='DataTables/jquery-3.5.1.js')}}"></script>
 
 <div class="container">
-    <form method="post" id="myForm">
-        <div class="mt-5">
-            <label for="Nombre_Mat" class="form-label">Nombre de Materia</label>
-            <input type="text" class="form-control" id="Nombre_Mat" name="nombre_mat" required autofocus value="{{data.nombre}}">
-        </div>
-        <div class="mb-3">
-            <label for="Descript" class="form-label">Descripción</label>
-            <textarea class="form-control" id="Descript" rows="3" name="descript_mat" value="{{data[2].descripcion}}"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Guardar</button>
-        <input type="button" class="btn btn-danger" value="Cancelar" onclick="history.back()">
-    </form>
+  <form method="post" id="myForm">
+    <div class="mt-5">
+      <label for="Nombre_Mat" class="form-label">Nombre de Materia</label>
+      <input
+        type="text"
+        class="form-control"
+        id="Nombre_Mat"
+        name="nombre_mat"
+        required
+        autofocus
+        value="{{data[1]}}"
+      />
+    </div>
+    <div class="mb-3">
+      <label for="Descript" class="form-label">Descripción</label>
+      <textarea
+        class="form-control"
+        id="Descript"
+        rows="3"
+        name="descript_mat"
+        value="{{data[2]}}"
+      ></textarea>
+    </div>
+  </form>
+  <form id="botones">
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <input
+      type="button"
+      class="btn btn-danger"
+      value="Cancelar"
+      onclick="history.back()"
+    />
+  </form>
 </div>
 <script>
-    var data = {{ data | tojson }};
-    var columns = [];
-    if (data) {
-        console.log("No está vacío");
-        console.log(data);
-        $('#myForm :input').prop('disabled', true); 
-    }
-    else {
-        console.log("Está vacío");
-    }
+  var data = {{ data | tojson }};
+  var columns = [];
+  var element = document.getElementById("botones")
+  if (data) {
+      console.log("No está vacío");
+      agregar_eliminar();
+  }
+  else {
+      console.log("Está vacío");
+  }
+
+  function agregar_eliminar(){
+      let btn = document.createElement("button");
+      btn.innerHTML = "Eliminar";
+      btn.type = "button";
+      btn.name = "formBtn";
+      btn.className = "btn btn-danger";
+      element.appendChild(btn);
+  }
 </script>
 {% endblock %}
