@@ -97,8 +97,16 @@ def materias():
 
 @app.route('/materias/<id>', methods=['GET', 'POST'])
 def ver_materias(id):
-    data = Materia.ver(db,id)
-    return render_template('/Tablas/materias.html', title="Materias", data=data)
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            materia = Materia(id, request.form["nombre_mat"], request.form["descript_mat"])
+            Materia.update(db, materia)
+        elif request.form["btn_submit"] == "btn_delete":
+            Materia.delete(db, id)
+        return redirect(url_for('materias'))
+    else:
+        data = Materia.ver(db,id)
+        return render_template('/Tablas/materias.html', title="Materias", data=data)
 
 
 @app.route('/new_materias', methods=['GET', 'POST'])
@@ -106,6 +114,7 @@ def add_materias():
     if request.method == "POST":
         materia = Materia(0, request.form["nombre_mat"], request.form["descript_mat"])
         Materia.nuevo(db, materia)
+        print("aaasdasdasdasd")
         return redirect(url_for('materias'))
     else: 
         return render_template('/Tablas/materias.html', title="Materias", data="")

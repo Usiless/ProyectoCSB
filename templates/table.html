@@ -9,7 +9,6 @@
         <table id="tabla" class="hover display" style="width:100%"></table>
     </div>
 </div>
-<script src="{{url_for('static', filename='DataTables/jquery-3.5.1.js')}}"></script>
 <script src="{{url_for('static', filename='DataTables/DataTables-1.12.1/js/jquery.dataTables.min.js')}}"></script>
 <script src="{{url_for('static', filename='DataTables/datatables.min.js')}}"></script>
 <script>
@@ -59,7 +58,7 @@
            "columnDefs": [{
                "targets": 0,
                "render": function (data, type, row, meta) {
-                   return '<a href=/' + tabla + "/" + row.ID + ' target="_blank">' + data + '</a>';
+                   return '<a href=/' + tabla + "/" + row.ID + ' target="">' + data + '</a>';
                }
            }]
        });
