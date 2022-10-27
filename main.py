@@ -53,19 +53,16 @@ def login():
 
 
 @app.route('/home')
-@login_required
 def home():
     return render_template('index.html')
 
 
 @app.route('/about')
-@login_required
 def about():
     return render_template('about.html')
 
 
 @app.route('/news')
-@login_required
 def news():
     return render_template('news.html')
 
@@ -77,8 +74,9 @@ def logout():
 
 
 @app.route('/users', methods=['GET', 'POST'])
+@login_required
 def users():
-    columnas = "id, username, fullname"
+    columnas = "id_user, username, fullname"
     tabla = "users"
     orden = "username"
     col = ["ID", "Usuario", "Nombre y apellido"]
