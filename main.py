@@ -53,19 +53,16 @@ def login():
 
 
 @app.route('/home')
-@login_required
 def home():
     return render_template('index.html')
 
 
 @app.route('/about')
-@login_required
 def about():
     return render_template('about.html')
 
 
 @app.route('/news')
-@login_required
 def news():
     return render_template('news.html')
 
@@ -77,8 +74,9 @@ def logout():
 
 
 @app.route('/users', methods=['GET', 'POST'])
+@login_required
 def users():
-    columnas = "id, username, fullname"
+    columnas = "id_user, username, fullname"
     tabla = "users"
     orden = "username"
     col = ["ID", "Usuario", "Nombre y apellido"]
@@ -114,7 +112,6 @@ def add_materias():
     if request.method == "POST":
         materia = Materia(0, request.form["nombre_mat"], request.form["descript_mat"])
         Materia.nuevo(db, materia)
-        print("aaasdasdasdasd")
         return redirect(url_for('materias'))
     else: 
         return render_template('/Tablas/materias.html', title="Materias", data="")
@@ -123,7 +120,7 @@ def add_materias():
 def get_tabla(columnas,col,tabla,orden):
     try:
         cursor = db.connection.cursor()
-        cursor.execute(f"SELECT {columnas} FROM {tabla} ORDER BY {orden} asc;")
+        cursor.execute(f"SELECT {columnas} FROM {tabla}  where estado=1 ORDER BY {orden} asc;")
         lista = cursor.fetchall()
         cursor.close()
         data = "[{"
