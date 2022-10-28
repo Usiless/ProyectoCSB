@@ -2,8 +2,6 @@ import json
 from flask import flash
 
 class Materia():
-    tablename = 'materias'
-
     def __init__(self, idmateria, nombre, descripcion=""):
         self.id = idmateria
         self.nombre = nombre
@@ -12,9 +10,9 @@ class Materia():
     def nuevo(db, materia):
         cursor = db.connection.cursor()
         try:
-            sql = f"""INSERT INTO %s (nombre, descripcion) 
+            sql = f"""INSERT INTO materias (nombre, descripcion) 
                         VALUES (%s,%s)"""
-            val = Materia.tablename, materia.nombre, materia.descripcion
+            val = materia.nombre, materia.descripcion
             cursor.execute(sql, val)
             db.connection.commit()
             return None
@@ -28,7 +26,7 @@ class Materia():
     def ver(db, id):
         cursor = db.connection.cursor()
         try:
-            sql = f"SELECT * from {Materia.tablename} WHERE idmateria = {id} and estado = 1"
+            sql = f"SELECT * from materias WHERE idmateria = {id} and estado = 1"
             cursor.execute(sql)
             results = cursor.fetchone()
             return results
@@ -41,10 +39,10 @@ class Materia():
     def update(db, materia):
         cursor = db.connection.cursor()
         try:
-            sql = """UPDATE %s
+            sql = """UPDATE materias
                     SET nombre = %s, descripcion = %s
                     WHERE idmateria = %s;"""
-            val = Materia.tablename, materia.nombre, materia.descripcion, materia.id
+            val = materia.nombre, materia.descripcion, materia.id
             cursor.execute(sql, val)
             db.connection.commit()
             err = {"title": "Guardado!",}
@@ -60,7 +58,7 @@ class Materia():
     def delete(db, id):
         cursor = db.connection.cursor()
         try:
-            sql = f"UPDATE {Materia.tablename} SET estado = 0 WHERE idmateria = {id};"
+            sql = f"UPDATE materias SET estado = 0 WHERE idmateria = {id};"
             cursor.execute(sql)
             db.connection.commit()
             err = {"title": "Eliminado!",}
@@ -74,8 +72,6 @@ class Materia():
             return None
 
 class Nivel_escolar():
-    tablename = 'nivel_escolar'
-
     def __init__(self, idnivel_escolar, nombre, exigencia):
         self.id  = idnivel_escolar 
         self.nombre = nombre
@@ -84,9 +80,9 @@ class Nivel_escolar():
     def nuevo(db, nivel_escolar):
         cursor = db.connection.cursor()
         try:
-            sql = f"""INSERT INTO %s (nombre, exigencia) 
+            sql = f"""INSERT INTO nivel_escolar (nombre, exigencia) 
                         VALUES (%s,%s)"""
-            val = Nivel_escolar.tablename, nivel_escolar.nombre, nivel_escolar.exigencia
+            val = nivel_escolar.nombre, nivel_escolar.exigencia
             cursor.execute(sql, val)
             db.connection.commit()
             return None
@@ -100,7 +96,7 @@ class Nivel_escolar():
     def ver(db, id):
         cursor = db.connection.cursor()
         try:
-            sql = f"SELECT * from {Nivel_escolar.tablename} WHERE idnivel_escolar = {id}"
+            sql = f"SELECT * from nivel_escolar WHERE idnivel_escolar = {id}"
             cursor.execute(sql)
             results = cursor.fetchone()
             return results
@@ -113,10 +109,10 @@ class Nivel_escolar():
     def update(db, nivel_escolar):
         cursor = db.connection.cursor()
         try:
-            sql = """UPDATE %s
+            sql = """UPDATE nivel_escolar
                     SET nombre = %s, exigencia = %s
                     WHERE idnivel_escolar = %s;"""
-            val = Nivel_escolar.tablename, nivel_escolar.nombre, nivel_escolar.exigencia, nivel_escolar.id
+            val = nivel_escolar.nombre, nivel_escolar.exigencia, nivel_escolar.id
             cursor.execute(sql, val)
             db.connection.commit()
             err = {"title": "Guardado!",}
@@ -130,8 +126,6 @@ class Nivel_escolar():
             return None
 
 class Secciones():
-    tablename = 'secciones'
-
     def __init__(self, idseccion, nombre):
         self.id = idseccion
         self.nombre = nombre
@@ -139,9 +133,9 @@ class Secciones():
     def nuevo(db, seccion):
         cursor = db.connection.cursor()
         try:
-            sql = f"""INSERT INTO %s (nombre,) 
+            sql = f"""INSERT INTO secciones (nombre,) 
                         VALUES (%s)"""
-            val = Secciones.tablename, seccion.nombre, seccion.descripcion
+            val = seccion.nombre, seccion.descripcion
             cursor.execute(sql, val)
             db.connection.commit()
             return None
@@ -155,7 +149,7 @@ class Secciones():
     def ver(db, id):
         cursor = db.connection.cursor()
         try:
-            sql = f"SELECT * from {Secciones.tablename} WHERE idseccion = {id}"
+            sql = f"SELECT * from secciones WHERE idseccion = {id}"
             cursor.execute(sql)
             results = cursor.fetchone()
             return results
@@ -168,10 +162,10 @@ class Secciones():
     def update(db, seccion):
         cursor = db.connection.cursor()
         try:
-            sql = """UPDATE %s
+            sql = """UPDATE secciones
                     SET nombre = %s
                     WHERE idseccion = %s;"""
-            val = Secciones.tablename, seccion.nombre, seccion.id
+            val = seccion.nombre, seccion.id
             cursor.execute(sql, val)
             db.connection.commit()
             err = {"title": "Guardado!",}
@@ -185,8 +179,6 @@ class Secciones():
             return None
 
 class Tutor():
-    tablename = 'tutores'
-
     def __init__(self, idtutor, nombre, apellido, documento, celular, email, domicilio):
         self.id = idtutor
         self.nombre = nombre
@@ -199,9 +191,9 @@ class Tutor():
     def nuevo(db, tutor):
         cursor = db.connection.cursor()
         try:
-            sql = f"""INSERT INTO %s (nombres, apellidos, documento, celular, email, domicilio) 
+            sql = f"""INSERT INTO tutores (nombres, apellidos, documento, celular, email, domicilio) 
                         VALUES (%s,%s,%s,%s,%s,%s,%s)"""
-            val = Tutor.tablename, tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio
+            val = tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio
             cursor.execute(sql, val)
             db.connection.commit()
             return None
@@ -215,7 +207,7 @@ class Tutor():
     def ver(db, id):
         cursor = db.connection.cursor()
         try:
-            sql = f"SELECT * from {Tutor.tablename} WHERE idtutor = {id} and estado = 1"
+            sql = f"SELECT * from tutores WHERE idtutor = {id} and estado = 1"
             cursor.execute(sql)
             results = cursor.fetchone()
             return results
@@ -228,10 +220,10 @@ class Tutor():
     def update(db, tutor):
         cursor = db.connection.cursor()
         try:
-            sql = """UPDATE %s
+            sql = """UPDATE tutores
                     SET idtutor = %s, nombre = %s, apellido = %s, documento = %s, celular = %s, email = %s, domicilio = %s
                     WHERE idtutor = %s;"""
-            val = Tutor.tablename, tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio, tutor.id
+            val = tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio, tutor.id
             cursor.execute(sql, val)
             db.connection.commit()
             err = {"title": "Guardado!",}
@@ -247,7 +239,7 @@ class Tutor():
     def delete(db, id):
         cursor = db.connection.cursor()
         try:
-            sql = f"UPDATE {Tutor.tablename} SET estado = 0 WHERE idtutor = {id};"
+            sql = f"UPDATE tutores SET estado = 0 WHERE idtutor = {id};"
             cursor.execute(sql)
             db.connection.commit()
             err = {"title": "Eliminado!",}

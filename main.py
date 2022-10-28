@@ -112,7 +112,6 @@ def add_materias():
     if request.method == "POST":
         materia = Materia(0, request.form["nombre_mat"], request.form["descript_mat"])
         Materia.nuevo(db, materia)
-        print("aaasdasdasdasd")
         return redirect(url_for('materias'))
     else: 
         return render_template('/Tablas/materias.html', title="Materias", data="")
@@ -121,7 +120,7 @@ def add_materias():
 def get_tabla(columnas,col,tabla,orden):
     try:
         cursor = db.connection.cursor()
-        cursor.execute(f"SELECT {columnas} FROM {tabla} ORDER BY {orden} asc;")
+        cursor.execute(f"SELECT {columnas} FROM {tabla}  where estado=1 ORDER BY {orden} asc;")
         lista = cursor.fetchall()
         cursor.close()
         data = "[{"
