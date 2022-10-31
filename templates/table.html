@@ -31,10 +31,10 @@
     }
 
    $(document).ready(function () {
-       columnNames = Object.keys(data.data[0]);
-       for (var i in columnNames) {
-           columns.push({data: columnNames[i],
-                   title: capitalizeFirstLetter(columnNames[i])});
+       //columnNames = Object.keys(data.data[0]);
+       for (var i in data.orden) {
+           columns.push({data: data.orden[i],
+               title: capitalizeFirstLetter(data.orden[i])});
        }
        $('#tabla').DataTable({
            dom: 'Bfrtip',
@@ -55,12 +55,18 @@
                    text: 'Nuevo desde Excel'
                }
            ],
-           "columnDefs": [{
-               "targets": 0,
-               "render": function (data, type, row, meta) {
-                   return '<a href=/' + tabla + "/" + row.ID + ' target="">' + data + '</a>';
+           "columnDefs": [
+               {
+                "targets": 0,
+                visible: false,
+               },
+               {
+                "targets": 1,
+                "render": function (data, type, row, meta) {
+                    return '<a href=/' + tabla + "/" + row.ID + ' target="">' + data + '</a>';
+                }
                }
-           }]
+           ]
        });
        /*var table = $('#tabla').DataTable();
 
@@ -71,7 +77,6 @@
                table.$('tr.selected').removeClass('selected');
            }
        });*/
-
    });
 
    function capitalizeFirstLetter(string) {

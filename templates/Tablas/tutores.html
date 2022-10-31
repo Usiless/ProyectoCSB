@@ -1,0 +1,91 @@
+﻿{% extends 'base.html' %} 
+{% block title %}{{title}}{% endblock %} 
+{% block content %}
+
+<div class="container">
+    <form method="post" id="myForm" onSubmit="return confirm('Confirmar cambios?');">
+        <div class="input-group">
+            <div class="mt-3 col-md-4 p-1">
+                <label for="nombre" class="form-label">Nombres</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" required autofocus value="{{data[1]}}" />
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label for="apellido" class="form-label">Apellidos</label>
+                <input type="text" class="form-control" id="apellido" name="apellido" required autofocus value="{{data[2]}}" />
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label for="documento" class="form-label">Documento</label>
+                <input type="number" class="form-control" id="documento" name="documento" required autofocus value="{{data[3]}}" />
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label for="celular" class="form-label">Celular</label>
+                <input type="tel" class="form-control" id="celular" name="celular" autofocus value="{{data[4]}}" />
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" autofocus value="{{data[5]}}" />
+            </div>
+            <div class="mt-3 mb-2 col-md-4 p-1">
+                <label for="domicilio" class="form-label">Domicilio</label>
+                <input type="text" class="form-control" id="domicilio" name="domicilio" autofocus value="{{data[6]}}" />
+            </div>
+        </div>
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
+    </form>
+</div>
+<script>
+    var data = {{ data | tojson }};
+    var columns = [];
+    var element = document.getElementById("botones");
+    if (data) {
+        console.log("No está vacío");
+        console.log(data);
+        agregar_editar();
+        agregar_eliminar();
+    }
+    else {
+        agregar_guardar();
+        console.log("Está vacío");
+    }
+    agregar_cancelar();
+
+    function agregar_eliminar(){
+        let btn = document.createElement("button");
+        btn.innerHTML = "Eliminar";
+        btn.type = "submit";
+        btn.value = "btn_delete";
+        btn.name = "btn_submit";
+        btn.className = "btn btn-danger";
+        element.appendChild(btn);
+    }
+
+    function agregar_editar() {
+        let btn = document.createElement("button");
+        btn.innerHTML = "Editar";
+        btn.type = "submit";
+        btn.value = "btn_editar";
+        btn.name = "btn_submit";
+        btn.className = "btn btn-primary";
+        element.appendChild(btn);
+    }
+
+    function agregar_guardar() {
+        let btn = document.createElement("button");
+        btn.innerHTML = "Guardar";
+        btn.type = "submit";
+        btn.name = "btnGuardar";
+        btn.className = "btn btn-primary";
+        element.appendChild(btn);
+    }
+
+    function agregar_cancelar() {
+        let btn = document.createElement("a");
+        btn.innerHTML = "Cancelar";
+        btn.type = "input";
+        btn.name = "btnCancelar";
+        btn.className = "btn btn-danger";
+        btn.setAttribute("onClick", "history.back()");
+        element.appendChild(btn);
+    }
+</script>
+{% endblock %}
