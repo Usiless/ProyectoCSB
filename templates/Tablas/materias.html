@@ -1,5 +1,5 @@
-﻿{% extends 'base.html' %} 
-{% block title %}{{title}}{% endblock %} 
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
 {% block content %}
 
 <div class="container">
@@ -15,59 +15,5 @@
         <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
     </form>
 </div>
-<script>
-    var data = {{ data | tojson }};
-    var columns = [];
-    var element = document.getElementById("botones");
-    if (data) {
-        console.log("No está vacío");
-        console.log(data);
-        agregar_editar();
-        agregar_eliminar();
-    }
-    else {
-        agregar_guardar();
-        console.log("Está vacío");
-    }
-    agregar_cancelar();
-
-    function agregar_eliminar(){
-        let btn = document.createElement("button");
-        btn.innerHTML = "Eliminar";
-        btn.type = "submit";
-        btn.value = "btn_delete";
-        btn.name = "btn_submit";
-        btn.className = "btn btn-danger";
-        element.appendChild(btn);
-    }
-
-    function agregar_editar() {
-        let btn = document.createElement("button");
-        btn.innerHTML = "Editar";
-        btn.type = "submit";
-        btn.value = "btn_editar";
-        btn.name = "btn_submit";
-        btn.className = "btn btn-primary";
-        element.appendChild(btn);
-    }
-
-    function agregar_guardar() {
-        let btn = document.createElement("button");
-        btn.innerHTML = "Guardar";
-        btn.type = "submit";
-        btn.name = "btnGuardar";
-        btn.className = "btn btn-primary";
-        element.appendChild(btn);
-    }
-
-    function agregar_cancelar() {
-        let btn = document.createElement("a");
-        btn.innerHTML = "Cancelar";
-        btn.type = "input";
-        btn.name = "btnCancelar";
-        btn.className = "btn btn-danger";
-        btn.setAttribute("onClick", "history.back()");
-        element.appendChild(btn);
-    }
-</script>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
 {% endblock %}

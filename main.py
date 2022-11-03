@@ -1,16 +1,15 @@
 ﻿from http.client import responses
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from tkinter import N
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_mysqldb import MySQL
 from flask_login import LoginManager, login_user, logout_user, login_required
-import mysql.connector
-import json
 import os
 
 from config import config
 
 from models.ModelUser import ModelUser
 from models.entities.User import User
-from model import Materia
+from model import *
 
 # SB ADMIN boostrap
 # Charisma
@@ -72,7 +71,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-
 @app.route('/users', methods=['GET', 'POST'])
 @login_required
 def users():
@@ -80,8 +78,9 @@ def users():
     tabla = "users"
     orden = "username"
     col = ["ID", "Usuario", "Nombre y apellido"]
-    response = get_tabla(columnas,col,tabla,orden)
-    print(response)
+    estado = ""
+    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    #print(response)
     return render_template('table.html', title="Usuarios", data=response)
 
 @app.route('/materias', methods=['GET', 'POST'])
@@ -90,7 +89,8 @@ def materias():
     tabla = "materias"
     orden = "idmateria"
     col = ["ID", "Nombre"]
-    response = get_tabla(columnas,col,tabla,orden)
+    estado = "WHERE estado = 1"
+    response = get_tabla(db, columnas, col, tabla, orden, estado)
     return render_template('table.html', title="Materias", data=response)
 
 @app.route('/materias/<id>', methods=['GET', 'POST'])
@@ -103,9 +103,8 @@ def ver_materias(id):
             Materia.delete(db, id)
         return redirect(url_for('materias'))
     else:
-        data = Materia.ver(db,id)
-        return render_template('/Tablas/materias.html', title="Materias", data=data)
-
+        data, permisos = Materia.ver(db,id)
+        return render_template('/Tablas/materias.html', title="Materias", data=data, permisos=permisos)
 
 @app.route('/new_materias', methods=['GET', 'POST'])
 def add_materias():
@@ -116,49 +115,100 @@ def add_materias():
     else: 
         return render_template('/Tablas/materias.html', title="Materias", data="")
 
+@app.route('/nivel_escolar', methods=['GET', 'POST'])
+def nivel_escolar():
+    columnas = "idnivel_escolar, nombre, exigencia"
+    tabla = "nivel_escolar"
+    orden = "idnivel_escolar"
+    col = ["ID", "Nombre", "Exigencia"]
+    estado = ""
+    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    return render_template('table.html', title="Nivel Escolar", data=response)
 
-def get_tabla(columnas,col,tabla,orden):
-    try:
-        cursor = db.connection.cursor()
-        cursor.execute(f"SELECT {columnas} FROM {tabla}  where estado=1 ORDER BY {orden} asc;")
-        lista = cursor.fetchall()
-        cursor.close()
-        data = "[{"
-        comilla = f"{chr (34)}"
-        c = 1
-        if lista:
-            for row in lista:
-                for i in range(0, len(lista[0])):
-                    data = data + comilla + str(col[i]) + comilla + ": "
-                    if type(row[i]) == str:
-                        data = data + comilla + row[i] + comilla
-                    else:
-                        data = data + str(row[i])
-                    if not i == (len(lista[0])-1):
-                        data = data + ", "
-                if c < (len(lista)):
-                    data = data + "}" + ", {"
-                c+=1
-            data = data + "}]"
-        else:
-            data = []
-            for i in range(0, len(col[0])):
-                data.append({
-                    f'{col[i]}': "",
-                })
-            a = str(str(data).replace("}, {", ", "))
-            a = str(str(a).replace("'", f"{chr (34)}"))
-            data = a
-        response = {'data': json.loads(data),
-                    'tabla': f"{tabla}",}
-        return response
-    except db.connection.Error as error :
-        err = {"title": "Error!",
-                "detalle":  str(error)}
-        flash(err)
-        return None
-    
+@app.route('/nivel_escolar/<id>', methods=['GET', 'POST'])
+def ver_nivel_escolar(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            nivel = Nivel_escolar(id, request.form["Nombre_Exig"], request.form["Exig"])
+            Nivel_escolar.update(db, nivel)
+        return redirect(url_for('nivel_escolar'))
+    else:
+        data = Nivel_escolar.ver(db,id)
+        return render_template('/Tablas/nivel_escolar.html', title="Nivel escolar", data=data)
 
+@app.route('/new_nivel_escolar', methods=['GET', 'POST'])
+def add_nivel_escolar():
+    if request.method == "POST":
+        nivel = Nivel_escolar(0, request.form["Nombre_Exig"], request.form["Exig"])
+        Nivel_escolar.nuevo(db, nivel)
+        return redirect(url_for('nivel_escolar'))
+    else: 
+        return render_template('/Tablas/nivel_escolar.html', title="Nivel escolar", data="")
+
+@app.route('/tutores', methods=['GET', 'POST'])
+def tutores():
+    columnas = "idtutor, nombres, apellidos"
+    tabla = "tutores"
+    orden = "nombres"
+    col = ["ID", "Nombre", "Apellido"]
+    estado = "WHERE estado = 1"
+    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    return render_template('table.html', title="Tutores", data=response)
+
+@app.route('/tutores/<id>', methods=['GET', 'POST'])
+def ver_tutor(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            tutor = Tutor(id, request.form["nombre"], request.form["apellido"], 
+                          request.form["documento"], request.form["celular"], 
+                          request.form["email"], request.form["domicilio"])
+            Tutor.update(db, tutor)
+        return redirect(url_for('tutores'))
+    else:
+        data = Tutor.ver(db,id)
+        return render_template('/Tablas/tutores.html', title="Tutores", data=data)
+
+@app.route('/new_tutores', methods=['GET', 'POST'])
+def add_tutor():
+    if request.method == "POST":
+        tutor = Tutor(0, request.form["nombre"], request.form["apellido"], 
+                          request.form["documento"], request.form["celular"], 
+                          request.form["email"], request.form["domicilio"])
+        Tutor.nuevo(db, tutor)
+        return redirect(url_for('tutores'))
+    else: 
+        return render_template('/Tablas/tutores.html', title="Tutores", data="")
+
+@app.route('/gravedad', methods=['GET', 'POST'])
+def gravedad():
+    columnas = "idgravedad, nombre"
+    tabla = "gravedad"
+    orden = "idgravedad"
+    col = ["ID", "Nombre"]
+    estado = ""
+    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    return render_template('table.html', title="Gravedad", data=response)
+
+@app.route('/gravedad/<id>', methods=['GET', 'POST'])
+def ver_gravedad(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            gravedad = Gravedad(id, request.form["nombre"], request.form["descript"])
+            Gravedad.update(db, gravedad)
+        return redirect(url_for('gravedad'))
+    else:
+        data, eliminar = Gravedad.ver(db,id)
+        #return render_template('/Tablas/gravedad.html', title="Gravedad", data=data, eliminar=1)
+        return render_template('/Tablas/gravedad.html', title="Gravedad", data=data, eliminar=eliminar)
+
+@app.route('/new_gravedad', methods=['GET', 'POST'])
+def add_gravedad():
+    if request.method == "POST":
+        gravedad = Gravedad(0, request.form["nombre"], request.form["descript"])
+        Gravedad.nuevo(db, gravedad)
+        return redirect(url_for('gravedad'))
+    else: 
+        return render_template('/Tablas/gravedad.html', title="Gravedad", data="")
 
 def status_401(error):
     return redirect(url_for('login'))
