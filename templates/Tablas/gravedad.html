@@ -17,5 +17,5 @@
         <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
     </form>
 </div>
-<script type="text/javascript" id="botones_js" data="{{ data }}" bandera="{{ eliminar }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
 {% endblock %}

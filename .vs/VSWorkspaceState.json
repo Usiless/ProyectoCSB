@@ -4,9 +4,10 @@
     "\\models",
     "\\models\\entities",
     "\\static",
+    "\\static\\img",
     "\\templates",
     "\\templates\\Tablas"
   ],
-  "SelectedNode": "\\main.py",
+  "SelectedNode": "\\model.py",
   "PreviewInSolutionExplorer": false
 }

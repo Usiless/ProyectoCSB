@@ -1,14 +1,17 @@
 ﻿$(document).ready(function () {
     var data = document.getElementById("botones_js").getAttribute("data");
-    var bandera = document.getElementById("botones_js").getAttribute("bandera");
+    var actualizar = document.getElementById("botones_js").getAttribute("actualizar");
+    var eliminar = document.getElementById("botones_js").getAttribute("eliminar");
     var element = document.getElementById("botones");
-    console.log(data);
-    console.log(typeof (data));
+    console.log(eliminar)
+    console.log(actualizar)
     if (data) {
         console.log("No está vacío");
-        agregar_editar();
-        if (bandera) {
+        if (eliminar) {
             agregar_eliminar();
+        }
+        if (actualizar) {
+            agregar_editar();
         }
     }
     else {

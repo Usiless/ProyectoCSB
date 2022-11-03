@@ -1,6 +1,6 @@
 ﻿from http.client import responses
 from tkinter import N
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_mysqldb import MySQL
 from flask_login import LoginManager, login_user, logout_user, login_required
 import os
@@ -71,7 +71,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-
 @app.route('/users', methods=['GET', 'POST'])
 @login_required
 def users():
@@ -81,7 +80,7 @@ def users():
     col = ["ID", "Usuario", "Nombre y apellido"]
     estado = ""
     response = get_tabla(db, columnas, col, tabla, orden, estado)
-    print(response)
+    #print(response)
     return render_template('table.html', title="Usuarios", data=response)
 
 @app.route('/materias', methods=['GET', 'POST'])
@@ -104,8 +103,8 @@ def ver_materias(id):
             Materia.delete(db, id)
         return redirect(url_for('materias'))
     else:
-        data = Materia.ver(db,id)
-        return render_template('/Tablas/materias.html', title="Materias", data=data)
+        data, permisos = Materia.ver(db,id)
+        return render_template('/Tablas/materias.html', title="Materias", data=data, permisos=permisos)
 
 @app.route('/new_materias', methods=['GET', 'POST'])
 def add_materias():
