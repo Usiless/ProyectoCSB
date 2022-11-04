@@ -185,26 +185,23 @@ class Nivel_escolar():
         self.exigencia  = exigencia 
     
     def nuevo(db, nivel_escolar):
-        val = nivel_escolar.nombre, nivel_escolar.descripcion
+        val = nivel_escolar.nombre, nivel_escolar.exigencia
         nuevo(db, val, Nivel_escolar.nombre_tabla, Nivel_escolar.cols)
 
     def ver(db, id):
-        permisos = obtener_permisos(db, Materia.nombre_tabla)
+        permisos = obtener_permisos(db, Nivel_escolar.nombre_tabla)
         datos = ver(db, id, Nivel_escolar.nombre_tabla, Nivel_escolar.col_id, Nivel_escolar.estado)
         return datos, permisos
 
     def update(db, nivel_escolar):
-        val = nivel_escolar.nombre, nivel_escolar.descripcion, nivel_escolar.id
+        val = nivel_escolar.nombre, nivel_escolar.exigencia
         update(db, val, Nivel_escolar.nombre_tabla, Nivel_escolar.cols_act, Nivel_escolar.col_id)
 
-
-
 class Secciones():
-    permisos = {"eliminar": "",}
-    nombre_tabla = "nivel_escolar"
-    col_id = "idnivel_escolar"
-    cols = "nombre, exigencia"
-    cols_act = "nombre = %s, exigencia = %s"
+    nombre_tabla = "secciones"
+    col_id = "idseccion"
+    cols = "nombre"
+    cols_act = "nombre = %s"
     estado = ""
 
     def __init__(self, idseccion, nombre):
@@ -212,55 +209,25 @@ class Secciones():
         self.nombre = nombre
     
     def nuevo(db, seccion):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"""INSERT INTO secciones (nombre,) 
-                        VALUES (%s)"""
-            val = seccion.nombre, seccion.descripcion
-            cursor.execute(sql, val)
-            db.connection.commit()
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = seccion.nombre, seccion.descripcion
+        nuevo(db, val, Secciones.nombre_tabla, Secciones.cols)
 
     def ver(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"SELECT * from secciones WHERE idseccion = {id}"
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            return results, Secciones.permisos["eliminar"]
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
-    
+        permisos = obtener_permisos(db, Secciones.nombre_tabla)
+        datos = ver(db, id, Secciones.nombre_tabla, Secciones.col_id, Secciones.estado)
+        return datos, permisos
+
     def update(db, seccion):
-        cursor = db.connection.cursor()
-        try:
-            sql = """UPDATE secciones
-                    SET nombre = %s
-                    WHERE idseccion = %s;"""
-            val = seccion.nombre, seccion.id
-            cursor.execute(sql, val)
-            db.connection.commit()
-            err = {"title": "Guardado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = seccion.nombre, seccion.descripcion, seccion.id
+        update(db, val, Secciones.nombre_tabla, Secciones.cols_act, Secciones.col_id)
 
 class Tutor():
-    permisos = {"eliminar": 1,}
+    nombre_tabla = "tutores"
+    col_id = "idtutor"
+    cols = "nombres, apellidos, documento, celular, email, domicilio"
+    cols_act = "nombre = %s, apellido = %s, documento = %s, celular = %s, email = %s, domicilio = %s"
+    estado = " and estado = 1"
+
     def __init__(self, idtutor, nombre, apellido, documento, celular, email, domicilio):
         self.id = idtutor
         self.nombre = nombre
@@ -271,355 +238,144 @@ class Tutor():
         self.domicilio = domicilio
     
     def nuevo(db, tutor):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"""INSERT INTO tutores (nombres, apellidos, documento, celular, email, domicilio) 
-                        VALUES (%s,%s,%s,%s,%s,%s)"""
-            val = tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio
-            cursor.execute(sql, val)
-            db.connection.commit()
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio, tutor.id
+        nuevo(db, val, Tutor.nombre_tabla, Tutor.cols)
 
     def ver(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"SELECT * from tutores WHERE idtutor = {id} and estado = 1"
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            return results, Tutor.permisos["eliminar"]
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
-    
+        permisos = obtener_permisos(db, Tutor.nombre_tabla)
+        datos = ver(db, id, Tutor.nombre_tabla, Tutor.col_id, Tutor.estado)
+        return datos, permisos
+
     def update(db, tutor):
-        cursor = db.connection.cursor()
-        try:
-            sql = """UPDATE tutores
-                    SET idtutor = %s, nombre = %s, apellido = %s, documento = %s, celular = %s, email = %s, domicilio = %s
-                    WHERE idtutor = %s;"""
-            val = tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio, tutor.id
-            cursor.execute(sql, val)
-            db.connection.commit()
-            err = {"title": "Guardado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio, tutor.id
+        update(db, val, Tutor.nombre_tabla, Tutor.cols_act, Tutor.col_id)
 
     def delete(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"UPDATE tutores SET estado = 0 WHERE idtutor = {id};"
-            cursor.execute(sql)
-            db.connection.commit()
-            err = {"title": "Eliminado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        delete_logic(db, Tutor.nombre_tabla, Tutor.col_id, id)
 
 class Gravedad():
-    permisos = {"eliminar": "",}
+    nombre_tabla = "gravedad"
+    col_id = "idgravedad"
+    cols = "nombre, descripcion"
+    cols_act = "nombre = %s, descripcion = %s"
+    estado = ""
+
     def __init__(self, idgravedad, nombre, descripcion=""):
         self.id = idgravedad
         self.nombre = nombre
         self.descripcion = descripcion
     
     def nuevo(db, gravedad):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"""INSERT INTO gravedad (nombre, descripcion) 
-                        VALUES (%s,%s)"""
-            val = gravedad.nombre, gravedad.descripcion
-            cursor.execute(sql, val)
-            db.connection.commit()
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = gravedad.nombre, gravedad.descripcion, gravedad.id
+        nuevo(db, val, Gravedad.nombre_tabla, Gravedad.cols)
 
     def ver(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"SELECT * from gravedad WHERE idgravedad = {id}"
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            return results, Gravedad.permisos["eliminar"]
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
-    
+        permisos = obtener_permisos(db, Gravedad.nombre_tabla)
+        datos = ver(db, id, Gravedad.nombre_tabla, Gravedad.col_id, Gravedad.estado)
+        return datos, permisos
+
     def update(db, gravedad):
-        cursor = db.connection.cursor()
-        try:
-            sql = """UPDATE gravedad
-                    SET nombre = %s, descripcion = %s
-                    WHERE idgravedad = %s;"""
-            val = gravedad.nombre, gravedad.descripcion, gravedad.id
-            cursor.execute(sql, val)
-            db.connection.commit()
-            err = {"title": "Guardado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = gravedad.nombre, gravedad.descripcion, gravedad.id   
+        update(db, val, Gravedad.nombre_tabla, Gravedad.cols_act, Gravedad.col_id)
 
 class Tipo_procesos():
-    permisos = {"eliminar": "",}
-    def __init__(self, idtipo_procesos, nombre, descripcion=""):
+    nombre_tabla = "tipo_procesos"
+    col_id = "idtipo_procesos"
+    cols = "descripcion"
+    cols_act = "descripcion = %s"
+    estado = ""
+
+    def __init__(self, idtipo_procesos, descripcion):
         self.id = idtipo_procesos
         self.descripcion = descripcion
     
-    def nuevo(db, tipo_procesos):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"""INSERT INTO tipo_procesos (descripcion) 
-                        VALUES (%s,%s)"""
-            val = tipo_procesos.descripcion
-            cursor.execute(sql, val)
-            db.connection.commit()
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+    def nuevo(db, tipo_proceso):
+        val = tipo_proceso.descripcion
+        nuevo(db, val, Tipo_procesos.nombre_tabla, Tipo_procesos.cols)
 
     def ver(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"SELECT * from tipo_procesos WHERE idtipo_procesos = {id}"
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            return results, Tipo_procesos.permisos["eliminar"]
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
-    
-    def update(db, tipo_procesos):
-        cursor = db.connection.cursor()
-        try:
-            sql = """UPDATE tipo_procesos
-                    SET descripcion = %s
-                    WHERE idtipo_procesos = %s;"""
-            val = tipo_procesos.descripcion, tipo_procesos.id
-            cursor.execute(sql, val)
-            db.connection.commit()
-            err = {"title": "Guardado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        permisos = obtener_permisos(db, Tipo_procesos.nombre_tabla)
+        datos = ver(db, id, Tipo_procesos.nombre_tabla, Tipo_procesos.col_id, Tipo_procesos.estado)
+        return datos, permisos
+
+    def update(db, tipo_proceso):
+        val = tipo_proceso.descripcion  
+        update(db, val, Tipo_procesos.nombre_tabla, Tipo_procesos.cols_act, Tipo_procesos.col_id)
 
 class Visitante():
-    permisos = {"eliminar": 1,}
+    nombre_tabla = "visitantes"
+    col_id = "idvisitante"
+    cols = "nombres, apellidos, telefono, estado"
+    cols_act = "nombres = %s, apellidos = %s, telefono = %s, estado = %s"
+    estado = " and estado = 1"    
+    
     def __init__(self, idvisitante, nombres, apellidos, telefono):
         self.id = idvisitante
         self.nombres = nombres
         self.apellidos = apellidos
         self.telefono = telefono
-    
+
     def nuevo(db, visitante):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"""INSERT INTO visitantes (nombres, apellidos, telefono) 
-                        VALUES (%s,%s)"""
-            val = visitante.nombres, visitante.apellidos, visitante.telefono
-            cursor.execute(sql, val)
-            db.connection.commit()
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = visitante.nombres, visitante.apellidos, visitante.telefono
+        nuevo(db, val, Visitante.nombre_tabla, Visitante.cols)
 
     def ver(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"SELECT * from visitantes WHERE idvisitante = {id} and estado = 1"
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            return results, Visitante.permisos["eliminar"]
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
-    
+        permisos = obtener_permisos(db, Visitante.nombre_tabla)
+        datos = ver(db, id, Visitante.nombre_tabla, Visitante.col_id, Visitante.estado)
+        return datos, permisos
+
     def update(db, visitante):
-        cursor = db.connection.cursor()
-        try:
-            sql = """UPDATE visitantes
-                    SET nombres = %s, apellidos = %s, telefono = %s
-                    WHERE idvisitante = %s;"""
-            val = visitante.nombres, visitante.apellidos, visitante.telefono, visitante.id
-            cursor.execute(sql, val)
-            db.connection.commit()
-            err = {"title": "Guardado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = visitante.nombres, visitante.apellidos, visitante.telefono
+        update(db, val, Visitante.nombre_tabla, Visitante.cols_act, Visitante.col_id)
 
     def delete(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"UPDATE visitantes SET estado = 0 WHERE idvisitante = {id};"
-            cursor.execute(sql)
-            db.connection.commit()
-            err = {"title": "Eliminado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        delete_logic(db, Visitante.nombre_tabla, Visitante.col_id, id)
 
 class Historial_ingreso():
-    permisos = {"eliminar": "",}
+    nombre_tabla = "historial_de_ingresos"
+    col_id = "idhistorial_de_ingreso"
+    cols = "fecha, descripcion"
+    cols_act = "fecha = %s, descripcion = %s"
+    estado = ""
+
     def __init__(self, idhistorial_ingreso, fecha, descripcion=""):
         self.id = idhistorial_ingreso
         self.fecha = fecha
         self.descripcion = descripcion
-    
+
     def nuevo(db, historial_ingreso):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"""INSERT INTO historial_ingresos (fecha, descripcion) 
-                        VALUES (%s,%s)"""
-            val = historial_ingreso.fecha, historial_ingreso.descripcion
-            cursor.execute(sql, val)
-            db.connection.commit()
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = historial_ingreso.fecha, historial_ingreso.descripcion
+        nuevo(db, val, Historial_ingreso.nombre_tabla, Historial_ingreso.cols)
 
     def ver(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"SELECT * from historial_ingresos WHERE idhistorial_ingreso = {id}"
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            return results, Historial_ingreso.permisos["eliminar"]
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
-    
+        permisos = obtener_permisos(db, Historial_ingreso.nombre_tabla)
+        datos = ver(db, id, Historial_ingreso.nombre_tabla, Historial_ingreso.col_id, Historial_ingreso.estado)
+        return datos, permisos
+
     def update(db, historial_ingreso):
-        cursor = db.connection.cursor()
-        try:
-            sql = """UPDATE historial_ingresos
-                    SET fecha = %s, descripcion = %s
-                    WHERE idhistorial_ingreso = %s;"""
-            val = historial_ingreso.fecha, historial_ingreso.descripcion, historial_ingreso.id
-            cursor.execute(sql, val)
-            db.connection.commit()
-            err = {"title": "Guardado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        val = historial_ingreso.fecha, historial_ingreso.descripcion
+        update(db, val, Historial_ingreso.nombre_tabla, Historial_ingreso.cols_act, Historial_ingreso.col_id)
 
 class Indicadores():
-    permisos = {"eliminar": "",}
-    def __init__(self, idmateria, nombre, descripcion=""):
+    nombre_tabla = "idindicadores"
+    col_id = "idindicadores"
+    cols = "descripción"
+    cols_act = "descripción = %s"
+    estado = ""
+
+    def __init__(self, idmateria, descripcion):
         self.id = idmateria
-        self.nombre = nombre
+        self.descripcion = descripcion
     
-    def nuevo(db, indicador):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"""INSERT INTO indicadores (descripcion) 
-                        VALUES (%s,%s)"""
-            val = indicador.descripcion
-            cursor.execute(sql, val)
-            db.connection.commit()
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+    def nuevo(db, indicadores):
+        val = indicadores.descripcion
+        nuevo(db, val, Indicadores.nombre_tabla, Indicadores.cols)
 
     def ver(db, id):
-        cursor = db.connection.cursor()
-        try:
-            sql = f"SELECT * from indicadores WHERE idmateria = {id}"
-            cursor.execute(sql)
-            results = cursor.fetchone()
-            return results, Indicadores.permisos["eliminar"]
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
-    
-    def update(db, indicador):
-        cursor = db.connection.cursor()
-        try:
-            sql = """UPDATE indicadores
-                    descripcion = %s
-                    WHERE idmateria = %s;"""
-            val = indicador.descripcion, indicador.id
-            cursor.execute(sql, val)
-            db.connection.commit()
-            err = {"title": "Guardado!",}
-            flash(err)
-            return None
-        except db.connection.Error as error :
-            err = {"title": "Cambio en la base fallido!",
-                   "detalle":  str(error)}
-            flash(err)
-            db.connection.rollback()
-            return None
+        permisos = obtener_permisos(db, Indicadores.nombre_tabla)
+        datos = ver(db, id, Indicadores.nombre_tabla, Indicadores.col_id, Indicadores.estado)
+        return datos, permisos
+
+    def update(db, indicadores):
+        val = indicadores.descripcion
+        update(db, val, Indicadores.nombre_tabla, Indicadores.cols_act, Indicadores.col_id)
