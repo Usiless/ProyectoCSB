@@ -7,10 +7,10 @@
     console.log(actualizar)
     if (data) {
         console.log("No está vacío");
-        if (eliminar) {
+        if (eliminar == 1) {
             agregar_eliminar();
         }
-        if (actualizar) {
+        if (actualizar == 1) {
             agregar_editar();
         }
     }

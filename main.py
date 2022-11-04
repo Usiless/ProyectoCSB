@@ -113,7 +113,7 @@ def add_materias():
         Materia.nuevo(db, materia)
         return redirect(url_for('materias'))
     else: 
-        return render_template('/Tablas/materias.html', title="Materias", data="")
+        return render_template('/Tablas/materias.html', title="Materias", data="", permisos="")
 
 @app.route('/nivel_escolar', methods=['GET', 'POST'])
 def nivel_escolar():
