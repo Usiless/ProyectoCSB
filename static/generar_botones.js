@@ -3,8 +3,8 @@
     var actualizar = document.getElementById("botones_js").getAttribute("actualizar");
     var eliminar = document.getElementById("botones_js").getAttribute("eliminar");
     var element = document.getElementById("botones");
-    console.log(eliminar)
-    console.log(actualizar)
+    var e = document.getElementsByClassName("form-control");
+
     if (data) {
         console.log("No está vacío");
         if (eliminar == 1) {
@@ -12,6 +12,14 @@
         }
         if (actualizar == 1) {
             agregar_editar();
+            //for (var i = 0; i < e.length; i++) {
+            //    e[i].removeAttribute("disabled");
+            //}
+        }
+        else {
+            for (var i = 0; i < e.length; i++) {
+                e[i].setAttribute('disabled', 'disabled');
+            }
         }
     }
     else {
