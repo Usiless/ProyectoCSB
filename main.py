@@ -80,17 +80,11 @@ def users():
     col = ["ID", "Usuario", "Nombre y apellido"]
     estado = ""
     response = get_tabla(db, columnas, col, tabla, orden, estado)
-    #print(response)
     return render_template('table.html', title="Usuarios", data=response)
 
 @app.route('/materias', methods=['GET', 'POST'])
 def materias():
-    columnas = "idmateria, nombre"
-    tabla = "materias"
-    orden = "idmateria"
-    col = ["ID", "Nombre"]
-    estado = "WHERE estado = 1"
-    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    response = Materia.get_tabla(db)
     return render_template('table.html', title="Materias", data=response)
 
 @app.route('/materias/<id>', methods=['GET', 'POST'])
@@ -115,14 +109,36 @@ def add_materias():
     else: 
         return render_template('/Tablas/materias.html', title="Materias", data="", permisos="")
 
+@app.route('/secciones', methods=['GET', 'POST'])
+def secciones():
+    response = Secciones.get_tabla(db)
+    return render_template('table.html', title="Secciones", data=response)
+
+@app.route('/secciones/<id>', methods=['GET', 'POST'])
+def ver_secciones(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            seccion = Secciones(id, request.form["Nombre"])
+            Secciones.update(db, seccion)
+        elif request.form["btn_submit"] == "btn_delete":
+            Secciones.delete(db, id)
+        return redirect(url_for('secciones'))
+    else:
+        data, permisos = Secciones.ver(db,id)
+        return render_template('/Tablas/secciones.html', title="Secciones", data=data, permisos=permisos)
+
+@app.route('/new_secciones', methods=['GET', 'POST'])
+def add_secciones():
+    if request.method == "POST":
+        seccion = Secciones(0, request.form["Nombre"])
+        Secciones.nuevo(db, seccion)
+        return redirect(url_for('secciones'))
+    else: 
+        return render_template('/Tablas/secciones.html', title="Secciones", data="", permisos="")
+
 @app.route('/nivel_escolar', methods=['GET', 'POST'])
 def nivel_escolar():
-    columnas = "idnivel_escolar, nombre, exigencia"
-    tabla = "nivel_escolar"
-    orden = "idnivel_escolar"
-    col = ["ID", "Nombre", "Exigencia"]
-    estado = ""
-    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    response = Nivel_escolar.get_tabla(db)
     return render_template('table.html', title="Nivel Escolar", data=response)
 
 @app.route('/nivel_escolar/<id>', methods=['GET', 'POST'])
@@ -131,10 +147,12 @@ def ver_nivel_escolar(id):
         if request.form["btn_submit"] == "btn_editar":
             nivel = Nivel_escolar(id, request.form["Nombre_Exig"], request.form["Exig"])
             Nivel_escolar.update(db, nivel)
+        elif request.form["btn_submit"] == "btn_delete":
+            Nivel_escolar.delete(db, id)
         return redirect(url_for('nivel_escolar'))
     else:
-        data = Nivel_escolar.ver(db,id)
-        return render_template('/Tablas/nivel_escolar.html', title="Nivel escolar", data=data)
+        data, permisos = Nivel_escolar.ver(db,id)
+        return render_template('/Tablas/nivel_escolar.html', title="Nivel escolar", data=data, permisos=permisos)
 
 @app.route('/new_nivel_escolar', methods=['GET', 'POST'])
 def add_nivel_escolar():
@@ -143,16 +161,11 @@ def add_nivel_escolar():
         Nivel_escolar.nuevo(db, nivel)
         return redirect(url_for('nivel_escolar'))
     else: 
-        return render_template('/Tablas/nivel_escolar.html', title="Nivel escolar", data="")
+        return render_template('/Tablas/nivel_escolar.html', title="Nivel escolar", data="", permisos="")
 
 @app.route('/tutores', methods=['GET', 'POST'])
 def tutores():
-    columnas = "idtutor, nombres, apellidos"
-    tabla = "tutores"
-    orden = "nombres"
-    col = ["ID", "Nombre", "Apellido"]
-    estado = "WHERE estado = 1"
-    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    response = Tutor.get_tabla(db)
     return render_template('table.html', title="Tutores", data=response)
 
 @app.route('/tutores/<id>', methods=['GET', 'POST'])
@@ -163,10 +176,12 @@ def ver_tutor(id):
                           request.form["documento"], request.form["celular"], 
                           request.form["email"], request.form["domicilio"])
             Tutor.update(db, tutor)
+        elif request.form["btn_submit"] == "btn_delete":
+            Tutor.delete(db, id)
         return redirect(url_for('tutores'))
     else:
-        data = Tutor.ver(db,id)
-        return render_template('/Tablas/tutores.html', title="Tutores", data=data)
+        data, permisos = Tutor.ver(db,id)
+        return render_template('/Tablas/tutores.html', title="Tutores", data=data, permisos=permisos)
 
 @app.route('/new_tutores', methods=['GET', 'POST'])
 def add_tutor():
@@ -177,16 +192,11 @@ def add_tutor():
         Tutor.nuevo(db, tutor)
         return redirect(url_for('tutores'))
     else: 
-        return render_template('/Tablas/tutores.html', title="Tutores", data="")
+        return render_template('/Tablas/tutores.html', title="Tutores", data="", permisos="")
 
 @app.route('/gravedad', methods=['GET', 'POST'])
 def gravedad():
-    columnas = "idgravedad, nombre"
-    tabla = "gravedad"
-    orden = "idgravedad"
-    col = ["ID", "Nombre"]
-    estado = ""
-    response = get_tabla(db, columnas, col, tabla, orden, estado)
+    response = Gravedad.get_tabla(db)
     return render_template('table.html', title="Gravedad", data=response)
 
 @app.route('/gravedad/<id>', methods=['GET', 'POST'])
@@ -195,11 +205,12 @@ def ver_gravedad(id):
         if request.form["btn_submit"] == "btn_editar":
             gravedad = Gravedad(id, request.form["nombre"], request.form["descript"])
             Gravedad.update(db, gravedad)
+        elif request.form["btn_submit"] == "btn_delete":
+            Gravedad.delete(db, id)
         return redirect(url_for('gravedad'))
     else:
-        data, eliminar = Gravedad.ver(db,id)
-        #return render_template('/Tablas/gravedad.html', title="Gravedad", data=data, eliminar=1)
-        return render_template('/Tablas/gravedad.html', title="Gravedad", data=data, eliminar=eliminar)
+        data, permisos = Gravedad.ver(db,id)
+        return render_template('/Tablas/gravedad.html', title="Gravedad", data=data, permisos=permisos)
 
 @app.route('/new_gravedad', methods=['GET', 'POST'])
 def add_gravedad():
@@ -208,7 +219,34 @@ def add_gravedad():
         Gravedad.nuevo(db, gravedad)
         return redirect(url_for('gravedad'))
     else: 
-        return render_template('/Tablas/gravedad.html', title="Gravedad", data="")
+        return render_template('/Tablas/gravedad.html', title="Gravedad", data="", permisos="")
+
+@app.route('/tipo_procs', methods=['GET', 'POST'])
+def tipo_procs():
+    response = Tipo_procesos.get_tabla(db)
+    return render_template('table.html', title="Tipo Procesos", data=response)
+
+@app.route('/tipo_procesos/<id>', methods=['GET', 'POST'])
+def ver_tipo_procs(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            tipo_proc = Tipo_procesos(id, request.form["nombre"])
+            Tipo_procesos.update(db, tipo_proc)
+        elif request.form["btn_submit"] == "btn_delete":
+            Tipo_procesos.delete(db, id)
+        return redirect(url_for('tipo_procs'))
+    else:
+        data, permisos = Tipo_procesos.ver(db,id)
+        return render_template('/Tablas/tipo_procs.html', title="Tipo Procesos", data=data, permisos=permisos)
+
+@app.route('/new_tipo_procesos', methods=['GET', 'POST'])
+def add_tipo_procs():
+    if request.method == "POST":
+        tipo_proc = Tipo_procesos(0, request.form["nombre"])
+        Tipo_procesos.nuevo(db, tipo_proc)
+        return redirect(url_for('tipo_procs'))
+    else: 
+        return render_template('/Tablas/tipo_procs.html', title="Tipo Procesos", data="", permisos="")
 
 def status_401(error):
     return redirect(url_for('login'))

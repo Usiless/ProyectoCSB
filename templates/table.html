@@ -16,6 +16,8 @@
     var columns = [];
     var tabla = data.tabla
     var link_add = "/new_" + tabla;
+    var crear = data.permisos[2];
+
     if (NoneEmpty(Object.values(data.data[0]))) {
         var datos = [];
     }
@@ -36,38 +38,65 @@
            columns.push({data: data.orden[i],
                title: capitalizeFirstLetter(data.orden[i])});
        }
-       $('#tabla').DataTable({
-           dom: 'Bfrtip',
-           language: {
-               url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json',
-           },
-           data: datos,
-           columns: columns,
-           buttons: [
-               {
-                   text: 'Nuevo',
-                   action: function (e, dt, node, config) {
-                       window.location = link_add;
+       if (crear == 1) {
+           $('#tabla').DataTable({
+               dom: 'Bfrtip',
+               language: {
+                   url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json',
+               },
+               data: datos,
+               columns: columns,
+               buttons: [
+                   {
+                       text: 'Nuevo',
+                       name: "Nuevo",
+                       action: function (e, dt, node, config) {
+                           window.location = link_add;
+                       },
                    },
+                   {
+                       name: "Nuevo_excel",
+                       extend: 'alert',
+                       text: 'Nuevo desde Excel'
+                   }
+               ],
+               "columnDefs": [
+                   {
+                       "targets": 0,
+                       visible: false,
+                   },
+                   {
+                       "targets": 1,
+                       "render": function (data, type, row, meta) {
+                           return '<a href=/' + tabla + "/" + row.ID + ' target="">' + data + '</a>';
+                       }
+                   }
+               ]
+           })
+       }
+       else {
+           $('#tabla').DataTable({
+               dom: 'Bfrtip',
+               language: {
+                   url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json',
                },
-               {
-                   extend: 'alert',
-                   text: 'Nuevo desde Excel'
-               }
-           ],
-           "columnDefs": [
-               {
-                "targets": 0,
-                visible: false,
-               },
-               {
-                "targets": 1,
-                "render": function (data, type, row, meta) {
-                    return '<a href=/' + tabla + "/" + row.ID + ' target="">' + data + '</a>';
-                }
-               }
-           ]
-       });
+               data: datos,
+               columns: columns,
+               buttons: [],
+               "columnDefs": [
+                   {
+                       "targets": 0,
+                       visible: false,
+                   },
+                   {
+                       "targets": 1,
+                       "render": function (data, type, row, meta) {
+                           return '<a href=/' + tabla + "/" + row.ID + ' target="">' + data + '</a>';
+                       }
+                   }
+               ]
+           })
+       }
        /*var table = $('#tabla').DataTable();
 
        $('#tabla tbody').on('click', 'tr', function () {
