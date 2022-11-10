@@ -1,12 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\env\\Lib",
-    "\\env\\Lib\\site-packages",
-    "\\env\\Lib\\site-packages\\flask",
     "\\models",
     "\\models\\entities",
     "\\static",
+    "\\static\\DataTables",
+    "\\static\\DataTables\\jQuery-3.6.0",
     "\\templates",
     "\\templates\\Tablas"
   ],
