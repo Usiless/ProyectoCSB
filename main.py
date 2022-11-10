@@ -30,7 +30,6 @@ def load_user(id):
 def start():
     return redirect(url_for('login'))
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -50,16 +49,13 @@ def login():
     else:
         return render_template('login.html')
 
-
 @app.route('/home')
 def home():
     return render_template('index.html')
 
-
 @app.route('/about')
 def about():
     return render_template('about.html')
-
 
 @app.route('/news')
 def news():
@@ -248,13 +244,98 @@ def add_tipo_procs():
     else: 
         return render_template('/Tablas/tipo_procs.html', title="Tipo Procesos", data="", permisos="")
 
+@app.route('/visitantes', methods=['GET', 'POST'])
+def visitantes():
+    response = Visitante.get_tabla(db)
+    return render_template('table.html', title="Visitantes", data=response)
+
+@app.route('/visitantes/<id>', methods=['GET', 'POST'])
+def ver_visitantes(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            visitante = Visitante(0, request.form["nombre"], request.form["apellido"], request.form["telefono"])
+            Visitante.update(db, visitante)
+        elif request.form["btn_submit"] == "btn_delete":
+            Visitante.delete(db, id)
+        return redirect(url_for('visitantes'))
+    else:
+        data, permisos = Visitante.ver(db,id)
+        return render_template('/Tablas/visitantes.html', title="Visitantes", data=data, permisos=permisos)
+
+@app.route('/new_visitantes', methods=['GET', 'POST'])
+def add_visitantes():
+    if request.method == "POST":
+        visitante = Visitante(0, request.form["nombre"], request.form["apellido"], request.form["telefono"])
+        Visitante.nuevo(db, visitante)
+        return redirect(url_for('visitantes'))
+    else: 
+        return render_template('/Tablas/visitantes.html', title="Visitantes", data="", permisos="")
+
+@app.route('/historial_de_ingresos', methods=['GET', 'POST'])
+def his_de_ing():
+    response = Historial_ingreso.get_tabla(db)
+    return render_template('table.html', title="Historial de Ingresos", data=response)
+
+@app.route('/historial_de_ingresos/<id>', methods=['GET', 'POST'])
+def ver_his_de_ing(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            hist = Historial_ingreso(0, request.form["fecha"], request.form["descripcion"])
+            vis_dia = request.form.getlist("id_det")
+            print(vis_dia)
+            Historial_ingreso.update(db, hist, id)
+        elif request.form["btn_submit"] == "btn_delete":
+            Historial_ingreso.delete(db, id)
+        return redirect(url_for('his_de_ing'))
+    else:
+        data, permisos, data_det = Historial_ingreso.ver(db,id)
+        data_sec = Visitante.get_tabla(db)
+        return render_template('/Tablas/his_de_ing.html', title="Historial de Ingresos", data=data, permisos=permisos, data_sec=data_sec, data_det=data_det)
+
+@app.route('/new_historial_de_ingresos', methods=['GET', 'POST'])
+def add_his_de_ing():
+    if request.method == "POST":
+        hist = Historial_ingreso(0, request.form["fecha"], request.form["descripcion"])
+        vis_dia = request.form.getlist("id_det")
+        Historial_ingreso.nuevo(db, hist, vis_dia)
+        return redirect(url_for('his_de_ing'))
+    else: 
+        data = Visitante.get_tabla(db)
+        return render_template('/Tablas/his_de_ing.html', title="Historial de Ingresos", data="", permisos="", data_sec=data)
+
+@app.route('/indicadores', methods=['GET', 'POST'])
+def indicadores():
+    response = Indicadores.get_tabla(db)
+    return render_template('table.html', title="Indicadores", data=response)
+
+@app.route('/indicadores/<id>', methods=['GET', 'POST'])
+def ver_indicadores(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            ind = Indicadores(0, request.form["descripcion"])
+            Indicadores.update(db, ind)
+        elif request.form["btn_submit"] == "btn_delete":
+            Indicadores.delete(db, id)
+        return redirect(url_for('indicadores'))
+    else:
+        data, permisos = Indicadores.ver(db,id)
+        return render_template('/Tablas/indicadores.html', title="Indicadores", data=data, permisos=permisos)
+
+@app.route('/new_indicadores', methods=['GET', 'POST'])
+def add_indicadores():
+    if request.method == "POST":
+        ind = Indicadores(0, request.form["descripcion"])
+        Indicadores.nuevo(db, ind)
+        return redirect(url_for('indicadores'))
+    else: 
+        return render_template('/Tablas/indicadores.html', title="Indicadores", data="", permisos="")
+
 def status_401(error):
     return redirect(url_for('login'))
 
 def status_404(error):
     #flash("Parece que no iniciaste sesión...")
     return render_template('404.html'), 404
-
 
 if __name__ == '__main__':
     app.register_error_handler(401, status_401)

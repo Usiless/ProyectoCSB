@@ -12,13 +12,17 @@
         }
         if (actualizar == 1) {
             agregar_editar();
-            //for (var i = 0; i < e.length; i++) {
-            //    e[i].removeAttribute("disabled");
-            //}
+            for (var i = 0; i < e.length; i++) {
+                if (e[i].className != "form-control det") {
+                    e[i].removeAttribute("disabled");
+                }
+            }
         }
         else {
             for (var i = 0; i < e.length; i++) {
-                e[i].setAttribute('disabled', 'disabled');
+                if (e[i].className != "form-control det") {
+                    e[i].setAttribute('disabled', 'disabled');
+                }
             }
         }
     }

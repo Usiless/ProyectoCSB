@@ -1,0 +1,159 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+
+<div class="container">
+    <div class="modal" id="myModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Seleccionar</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row" style="padding:50px;">
+                        <table id="tabla" class="hover display" style="width:100%"></table>
+                    </div>
+                    <a id="aux" value="0" hidden></a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onClick=carga_datos_en_detalle() data-bs-dismiss="modal">Seleccionar</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <form method="post" id="myForm" onSubmit="return confirm('Confirmar cambios?');">
+        <div>
+            <div class="mt-3 col-3">
+                <label for="fecha" class="form-label">Fecha</label>
+                <input type="date" class="form-control" id="fecha" name="fecha" required autofocus value="{{data[1]}}" />
+            </div>
+            <div class="mb-3 col-9">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="descripcion" rows="3" name="descripcion">{{data[2]}}</textarea>
+            </div>
+        </div>
+        <div class="col-md-12 column">
+            <table class="table table-bordered table-hover" id="tab_logic">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">Nombres</th>
+                        <th class="text-center">Apellidos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%for row in data_det%}
+                    <tr id='addr{{loop.index-1}}'>
+                        <td>{{loop.index}}</td>
+                        <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" value={row.id} /></td>
+                        <td><input type="text" id='nombre[]' class="form-control det" value={{row[1]}} disabled /></td>
+                        <td><input type="email" id='apellido[]' class="form-control det" value={{row[2]}} disabled /></td>
+                        <td><a class="btn btn-primary col-12" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a></td>
+                    </tr>
+                    {%endfor%}
+                    <tr id='addr{{data_det | length }}'>
+                        <td>{{data_det | length + 1 }}</td>
+                        <td hidden><input type="text" id='id_det' name="id_det" class="form-control det"/></td>
+                        <td><input type="text" id='nombre[]' class="form-control det" disabled /></td>
+                        <td><input type="email" id='apellido[]' class="form-control det" disabled /></td>
+                        <td><a class="btn btn-primary col-12" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a></td>
+                    </tr>
+                    <tr id='addr{{data_det | length + 1}}'>
+                </tbody>
+            </table>
+            <a id="add_row" class="btn btn-primary">Añadir fila</a>
+            <a id='delete_row' class="btn btn-danger">Eliminar fila</a>
+        </div>
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
+    </form>
+</div>
+<script>
+    var data = {{ data_sec | tojson }};
+    var columns = [];
+    var tabla = data.tabla
+    if (NoneEmpty(Object.values(data.data[0]))) {
+        var datos = [];
+    }
+    else {
+        var datos = data.data;
+    }
+
+    function NoneEmpty(arr) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] === "") return true;
+        }
+        return false;
+    }
+
+    $(document).ready(function () {
+        for (var i in data.orden) {
+            columns.push({
+                data: data.orden[i],
+                title: capitalizeFirstLetter(data.orden[i])
+            });
+        }
+        $('#tabla').DataTable({
+            dom: 'Bfrtp',
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json',
+            },
+            data: datos,
+            columns: columns,
+            buttons: [],
+            select: true,
+            "columnDefs": [
+                {
+                    "targets": 0,
+                    visible: false,
+                },
+            ]
+        })
+    });
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    };
+</script>
+
+<script>
+    function carga_datos_en_detalle() {
+        var table = $('#tabla').DataTable();
+        let dt = table.rows({ selected: true }).data()[0];
+        var dt_ord = JSON.parse(JSON.stringify(dt, data.orden, 4));
+
+        let origen = document.getElementById("aux").value;
+        var detalle = document.getElementById(origen);
+
+        for (var f = 1; f < detalle.cells.length - 1; f++) {
+            detalle.cells[f].getElementsByTagName("*")[0].value = Object.values(dt_ord)[f - 1];
+        }
+    }
+    function setea_la_ubi_detalle(x) {
+        var table = $('#tabla').DataTable();
+        var i = $(x).closest('tr');
+        table.rows().deselect();
+        document.getElementById("aux").value = "0";
+        document.getElementById("aux").value = i[0].id;
+    }
+    $(document).ready(function () {
+        var i = {{ data_det | length + 1 }};
+        $("#add_row").click(function () {
+            b = i - 1;
+            $('#addr' + i).html($('#addr' + b).html()).find('td:first-child').html(i + 1);
+            $('#tab_logic').append('<tr id="addr' + (i + 1) + '"</tr>');
+            i++;
+        });
+        $("#delete_row").click(function () {
+            if (i > 1) {
+                $("#addr" + (i - 1)).html('');
+                i--;
+            }
+        });
+    });
+</script>
+
+<script type="text/javascript" src="{{url_for('static', filename='date_today.js')}}"></script>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
+{% endblock %}

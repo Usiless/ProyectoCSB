@@ -65,6 +65,62 @@ def nuevo(db,val, nombre_tabla, cols):
         db.connection.rollback()
         return None
 
+def get_last_insert(db, nombre_tabla, col_id):
+        cursor = db.connection.cursor()
+        try:
+            sql = f"SELECT {col_id} FROM {nombre_tabla} ORDER BY {col_id} DESC LIMIT 1;"
+            cursor.execute(sql)
+            results = cursor.fetchone()
+            return results
+        except db.connection.Error as error :
+            err = {"title": "Error!",
+                   "detalle":  str(error)}
+            flash(err)
+            return None
+
+def ver_child(db, id, nombre_tabla, col_id):
+    cursor = db.connection.cursor()
+    a = []
+    columns = ''
+    for i in range(1,len(col_id)):
+        columns = columns + col_id[i]
+    try:
+        sql = f"SELECT {columns} from {nombre_tabla} WHERE {col_id[0]} = {id}"
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+            a.append(row[0])
+        results = a
+        return results
+    except db.connection.Error as error :
+        err = {"title": "Error!",
+                "detalle":  str(error)}
+        flash(err)
+        return None
+
+def get_tabla_child(db, columnas, tabla, orden, estado, col_id, val):
+    valores = ''
+    for row in val:
+        valores = valores + str(row) + ", "
+    valores = valores[0:len(valores)-2]
+    filtro = f"{col_id} in ({valores})"
+    try:
+        if estado:
+            sql = f"SELECT {columnas} FROM {tabla} WHERE estado = 1 AND {filtro} ORDER BY {orden} asc;"
+        else:
+            sql = f"SELECT {columnas} FROM {tabla} WHERE {filtro} ORDER BY {orden} asc;"
+        print(sql)
+        cursor = db.connection.cursor()
+        cursor.execute(sql)
+        lista = cursor.fetchall()
+        cursor.close()
+        return lista
+    except db.connection.Error as error :
+        err = {"title": "Error!",
+                "detalle":  str(error)}
+        flash(err)
+        return None
+
 def ver(db, id, nombre_tabla, col_id, estado):
         cursor = db.connection.cursor()
         try:
@@ -103,7 +159,7 @@ def update(db, val, nombre_tabla, cols_act, col_id):
 
     try:
         sql = f"UPDATE {nombre_tabla} SET {cols_act} = %s WHERE {col_id} = %s;"
-        print(sql)
+        print(sql,val)
         cursor.execute(sql, val)
         db.connection.commit()
         err = {"title": "Guardado!",}
@@ -148,6 +204,21 @@ def delete_fis(db, nombre_tabla, col_id, id):
         db.connection.rollback()
         return None
 
+def delete_fis_child(db, nombre_tabla, col_id, id):
+    cursor = db.connection.cursor()
+    try:
+        sql = f"DELETE FROM {nombre_tabla} WHERE {col_id} = {id};"
+        cursor.execute(sql)
+        db.connection.commit()
+        err = {"title": "Eliminado!",}
+        flash(err)
+        return None
+    except db.connection.Error as error :
+        err = {"title": "Cambio en la base fallido!",
+                "detalle":  str(error)}
+        flash(err)
+        db.connection.rollback()
+        return None
 
 class Materia():
     nombre_tabla = "materias"
@@ -213,8 +284,11 @@ class Nivel_escolar():
         return datos, permisos
 
     def update(db, nivel_escolar):
-        val = nivel_escolar.nombre, nivel_escolar.exigencia
+        val = nivel_escolar.nombre, nivel_escolar.exigencia, nivel_escolar.id
         update(db, val, Nivel_escolar.nombre_tabla, Nivel_escolar.cols, Nivel_escolar.col_id)
+    
+    def delete(db, id):
+        delete_fis(Nivel_escolar.nombre_tabla, Nivel_escolar.col_id, id)
 
 class Secciones():
     nombre_tabla = "secciones"
@@ -246,6 +320,9 @@ class Secciones():
     def update(db, seccion):
         val = seccion.nombre, seccion.id
         update(db, val, Secciones.nombre_tabla, Secciones.cols, Secciones.col_id)
+    
+    def delete(db, id):
+        delete_fis(Secciones.nombre_tabla, Secciones.col_id, id)
 
 class Tutor():
     nombre_tabla = "tutores"
@@ -317,6 +394,9 @@ class Gravedad():
     def update(db, gravedad):
         val = gravedad.nombre, gravedad.descripcion, gravedad.id   
         update(db, val, Gravedad.nombre_tabla, Gravedad.cols, Gravedad.col_id)
+    
+    def delete(db, id):
+        delete_fis(Gravedad.nombre_tabla, Gravedad.col_id, id)
 
 class Tipo_procesos():
     nombre_tabla = "tipo_procesos"
@@ -346,20 +426,31 @@ class Tipo_procesos():
         return datos, permisos
 
     def update(db, tipo_proceso):
-        val = tipo_proceso.descripcion  
+        val = tipo_proceso.descripcion, tipo_proceso.id
         update(db, val, Tipo_procesos.nombre_tabla, Tipo_procesos.cols, Tipo_procesos.col_id)
+    
+    def delete(db, id):
+        delete_fis(Tipo_procesos.nombre_tabla, Tipo_procesos.col_id, id)
 
 class Visitante():
     nombre_tabla = "visitantes"
+    orden = "idvisitante"
     col_id = "idvisitante"
-    cols = "nombres, apellidos, telefono, estado"
+    cols = "nombres, apellidos, telefono"
     elim_log = 1    
     
+    cols_def = col_id + ", nombres, apellidos"
+    tabla_col_def = ["ID", "Nombres", "Apellidos"]
+
     def __init__(self, idvisitante, nombres, apellidos, telefono):
         self.id = idvisitante
         self.nombres = nombres
         self.apellidos = apellidos
         self.telefono = telefono
+    
+    def get_tabla(db):
+        response = get_tabla(db, Visitante.cols_def, Visitante.tabla_col_def, Visitante.nombre_tabla, Visitante.orden, Visitante.elim_log)
+        return response
 
     def nuevo(db, visitante):
         val = visitante.nombres, visitante.apellidos, visitante.telefono
@@ -371,7 +462,7 @@ class Visitante():
         return datos, permisos
 
     def update(db, visitante):
-        val = visitante.nombres, visitante.apellidos, visitante.telefono
+        val = visitante.nombres, visitante.apellidos, visitante.telefono, visitante.id
         update(db, val, Visitante.nombre_tabla, Visitante.cols, Visitante.col_id)
 
     def delete(db, id):
@@ -379,37 +470,83 @@ class Visitante():
 
 class Historial_ingreso():
     nombre_tabla = "historial_de_ingresos"
+    orden = "fecha, idhistorial_de_ingreso"
     col_id = "idhistorial_de_ingreso"
     cols = "fecha, descripcion"
     elim_log = 0
+    
+    cols_def = col_id + ",CAST(fecha AS char)"
+    tabla_col_def = ["ID", "Fecha"]
 
     def __init__(self, idhistorial_ingreso, fecha, descripcion=""):
         self.id = idhistorial_ingreso
         self.fecha = fecha
         self.descripcion = descripcion
+    
+    def get_tabla(db):
+        response = get_tabla(db, Historial_ingreso.cols_def, Historial_ingreso.tabla_col_def, Historial_ingreso.nombre_tabla, Historial_ingreso.orden, Historial_ingreso.elim_log)
+        return response
 
-    def nuevo(db, historial_ingreso):
+    def nuevo(db, historial_ingreso, vis_det):
         val = historial_ingreso.fecha, historial_ingreso.descripcion
         nuevo(db, val, Historial_ingreso.nombre_tabla, Historial_ingreso.cols)
+        last_insert = get_last_insert(db, Historial_ingreso.nombre_tabla, Historial_ingreso.col_id)
+        for row in vis_det:
+            val = last_insert[0], row
+            nuevo(db, val, Hist_ingr_det.nombre_tabla, Hist_ingr_det.cols)
 
     def ver(db, id):
         permisos = obtener_permisos(db, Historial_ingreso.nombre_tabla)
         datos = ver(db, id, Historial_ingreso.nombre_tabla, Historial_ingreso.col_id, Historial_ingreso.elim_log)
-        return datos, permisos
+        datos_sec = ver_child(db, id, Hist_ingr_det.nombre_tabla, Hist_ingr_det.col_id)
+        datos_sec = get_tabla_child(db, Visitante.cols_def, Visitante.nombre_tabla, Visitante.orden, Visitante.elim_log, Visitante.col_id, datos_sec)
+        return datos, permisos, datos_sec
+
+    def update(db, historial_ingreso):
+        val = historial_ingreso.fecha, historial_ingreso.descripcion, historial_ingreso.id
+        update(db, val, Historial_ingreso.nombre_tabla, Historial_ingreso.cols, Historial_ingreso.col_id)
+    
+    def delete(db, id):
+        delete_fis(Historial_ingreso.nombre_tabla, Historial_ingreso.col_id, id)
+
+class Hist_ingr_det():
+    nombre_tabla = "visitantes_por_dia"
+    orden = "idhistorial_de_ingreso, idvisitante"
+    col_id = "idhistorial_de_ingreso", "idvisitante"
+    cols = "idhistorial_de_ingreso, idvisitante"
+    elim_log = 0
+    
+    cols_def = col_id
+    tabla_col_def = ["ID", "Fecha"]
+
+    def __init__(self, idhistorial_ingreso, idvisitante):
+        self.id_his = idhistorial_ingreso
+        self.id_vis = idvisitante
 
     def update(db, historial_ingreso):
         val = historial_ingreso.fecha, historial_ingreso.descripcion
         update(db, val, Historial_ingreso.nombre_tabla, Historial_ingreso.cols, Historial_ingreso.col_id)
+    
+    def delete(db, id):
+        delete_fis(Historial_ingreso.nombre_tabla, Historial_ingreso.col_id, id)
 
 class Indicadores():
-    nombre_tabla = "idindicadores"
+    nombre_tabla = "indicadores"
+    orden = "idindicadores"
     col_id = "idindicadores"
     cols = "descripción"
     elim_log = 0
+    
+    cols_def = col_id + ", descripción"
+    tabla_col_def = ["ID", "Descripción"]
 
     def __init__(self, idmateria, descripcion):
         self.id = idmateria
         self.descripcion = descripcion
+    
+    def get_tabla(db):
+        response = get_tabla(db, Indicadores.cols_def, Indicadores.tabla_col_def, Indicadores.nombre_tabla, Indicadores.orden, Indicadores.elim_log)
+        return response
     
     def nuevo(db, indicadores):
         val = indicadores.descripcion
@@ -423,3 +560,6 @@ class Indicadores():
     def update(db, indicadores):
         val = indicadores.descripcion
         update(db, val, Indicadores.nombre_tabla, Indicadores.cols, Indicadores.col_id)
+    
+    def delete(db, id):
+        delete_fis(Indicadores.nombre_tabla, Indicadores.col_id, id)
