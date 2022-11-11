@@ -159,7 +159,6 @@ def update(db, val, nombre_tabla, cols_act, col_id):
 
     try:
         sql = f"UPDATE {nombre_tabla} SET {cols_act} = %s WHERE {col_id} = %s;"
-        print(sql,val)
         cursor.execute(sql, val)
         db.connection.commit()
         err = {"title": "Guardado!",}
@@ -500,6 +499,7 @@ class Historial_ingreso():
         datos = ver(db, id, Historial_ingreso.nombre_tabla, Historial_ingreso.col_id, Historial_ingreso.elim_log)
         datos_sec = ver_child(db, id, Hist_ingr_det.nombre_tabla, Hist_ingr_det.col_id)
         datos_sec = get_tabla_child(db, Visitante.cols_def, Visitante.nombre_tabla, Visitante.orden, Visitante.elim_log, Visitante.col_id, datos_sec)
+        print(datos_sec)
         return datos, permisos, datos_sec
 
     def update(db, historial_ingreso):

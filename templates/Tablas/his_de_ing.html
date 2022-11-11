@@ -48,7 +48,7 @@
                     {%for row in data_det%}
                     <tr id='addr{{loop.index-1}}'>
                         <td>{{loop.index}}</td>
-                        <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" value={row.id} /></td>
+                        <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" value={{row[0]}} /></td>
                         <td><input type="text" id='nombre[]' class="form-control det" value={{row[1]}} disabled /></td>
                         <td><input type="email" id='apellido[]' class="form-control det" value={{row[2]}} disabled /></td>
                         <td><a class="btn btn-primary col-12" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a></td>
@@ -71,7 +71,7 @@
     </form>
 </div>
 <script>
-    var data = {{ data_sec | tojson }};
+    const data = {{ data_sec | tojson }};
     var columns = [];
     var tabla = data.tabla
     if (NoneEmpty(Object.values(data.data[0]))) {

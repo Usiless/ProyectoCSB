@@ -253,7 +253,7 @@ def visitantes():
 def ver_visitantes(id):
     if request.method == "POST":
         if request.form["btn_submit"] == "btn_editar":
-            visitante = Visitante(0, request.form["nombre"], request.form["apellido"], request.form["telefono"])
+            visitante = Visitante(id, request.form["nombre"], request.form["apellido"], request.form["telefono"])
             Visitante.update(db, visitante)
         elif request.form["btn_submit"] == "btn_delete":
             Visitante.delete(db, id)
@@ -280,10 +280,19 @@ def his_de_ing():
 def ver_his_de_ing(id):
     if request.method == "POST":
         if request.form["btn_submit"] == "btn_editar":
-            hist = Historial_ingreso(0, request.form["fecha"], request.form["descripcion"])
-            vis_dia = request.form.getlist("id_det")
-            print(vis_dia)
-            Historial_ingreso.update(db, hist, id)
+            hist = Historial_ingreso(id, request.form["fecha"], request.form["descripcion"])
+            a = request.form.getlist("id_det")
+            vis_dia_raw = a
+            vis_dia = []
+            print(vis_dia_raw)
+            for row in vis_dia_raw:
+                print("A")
+                if row!="{row.id}" and row!="":
+                    vis_dia.append(int(row))
+                print(row)
+                print(type(row))
+            print("DDD", vis_dia)
+            Historial_ingreso.update(db, hist)
         elif request.form["btn_submit"] == "btn_delete":
             Historial_ingreso.delete(db, id)
         return redirect(url_for('his_de_ing'))
