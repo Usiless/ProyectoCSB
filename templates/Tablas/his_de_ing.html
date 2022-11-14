@@ -137,23 +137,9 @@
         document.getElementById("aux").value = "0";
         document.getElementById("aux").value = i[0].id;
     }
-    $(document).ready(function () {
-        var i = {{ data_det | length + 1 }};
-        $("#add_row").click(function () {
-            b = i - 1;
-            $('#addr' + i).html($('#addr' + b).html()).find('td:first-child').html(i + 1);
-            $('#tab_logic').append('<tr id="addr' + (i + 1) + '"</tr>');
-            i++;
-        });
-        $("#delete_row").click(function () {
-            if (i > 1) {
-                $("#addr" + (i - 1)).html('');
-                i--;
-            }
-        });
-    });
 </script>
 
+<script type="text/javascript" id="agrega_row" data="{{ data_det }}" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='date_today.js')}}"></script>
 <script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
 {% endblock %}

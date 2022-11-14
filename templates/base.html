@@ -64,7 +64,7 @@
                                    class="dropdown-item">Tutores</a>
                             </li>
                             <li>
-                                <a href=""
+                                <a href="{{url_for('profesores')}}"
                                    class="dropdown-item">Profesores</a>
                             </li>
                             <li>
@@ -94,10 +94,6 @@
                                    class="dropdown-item">Grados</a>
                             </li>
                             <li>
-                                <a href="#"
-                                   class="dropdown-item">Portería</a>
-                            </li>
-                            <li>
                                 <a href="{{url_for('secciones')}}"
                                    class="dropdown-item">Secciones</a>
                             </li>
@@ -112,6 +108,25 @@
                             <li>
                                 <a href="{{url_for('gravedad')}}"
                                    class="dropdown-item">Gravedad</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#"
+                           class="nav-link dropdown-toggle"
+                           id="navbarDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">Portería</a>
+                        <ul class="dropdown-menu"
+                            aria-labelledby="navbarDropdown">
+                            <li>
+                                <a href="{{url_for('visitantes')}}"
+                                   class="dropdown-item">Visitantes</a>
+                            </li>
+                            <li>
+                                <a href="{{url_for('his_de_ing')}}"
+                                   class="dropdown-item">Historial de Visitas</a>
                             </li>
                         </ul>
                     </li>

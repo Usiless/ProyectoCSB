@@ -1,15 +1,20 @@
 ﻿from http.client import responses
 from tkinter import N
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_mysqldb import MySQL
 from flask_login import LoginManager, login_user, logout_user, login_required
 import os
+from werkzeug.utils import secure_filename
 
 from config import config
 
 from models.ModelUser import ModelUser
 from models.entities.User import User
 from model import *
+import base64
+
+from static.funciones.funciones import *
+
 
 # SB ADMIN boostrap
 # Charisma
@@ -18,6 +23,9 @@ from model import *
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config.from_object(config['development'])
+UPLOAD_FOLDER = 'D:/Downloads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 db = MySQL(app)
 login_manager_app = LoginManager(app)
 
@@ -281,18 +289,9 @@ def ver_his_de_ing(id):
     if request.method == "POST":
         if request.form["btn_submit"] == "btn_editar":
             hist = Historial_ingreso(id, request.form["fecha"], request.form["descripcion"])
-            a = request.form.getlist("id_det")
-            vis_dia_raw = a
-            vis_dia = []
-            print(vis_dia_raw)
-            for row in vis_dia_raw:
-                print("A")
-                if row!="{row.id}" and row!="":
-                    vis_dia.append(int(row))
-                print(row)
-                print(type(row))
-            print("DDD", vis_dia)
-            Historial_ingreso.update(db, hist)
+            vis_dia_raw = request.form.getlist("id_det")
+            vis_dia = limpia_sub_tabla_uniq(vis_dia_raw)
+            Historial_ingreso.update(db, hist, vis_dia)
         elif request.form["btn_submit"] == "btn_delete":
             Historial_ingreso.delete(db, id)
         return redirect(url_for('his_de_ing'))
@@ -338,6 +337,52 @@ def add_indicadores():
         return redirect(url_for('indicadores'))
     else: 
         return render_template('/Tablas/indicadores.html', title="Indicadores", data="", permisos="")
+
+@app.route('/profesores', methods=['GET', 'POST'])
+def profesores():
+    response = Profesores.get_tabla(db)
+    return render_template('table.html', title="Profesores", data=response)
+
+@app.route('/profesores/<id>', methods=['GET', 'POST'])
+def ver_profesores(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            profesor = Profesores(id, request.form["nombre"], request.form["apellido"], 
+                          request.form["documento"], request.form["celular"],request.form["telefono"],
+                          request.form["email"], request.form["domicilio"])
+            legajo_ids = request.form.getlist("id_det")
+            legajo_data = request.files.getlist('legaj')
+            legajo = []
+            for i in range(0,len(legajo_ids)):
+                legajo.append([legajo_ids[i], legajo_data[i], id])
+            legajo = limpia_sub_tabla_multi(legajo)
+            legajo_raw = convierte_img_a_64_multi(legajo)
+            print(legajo)
+            print(legajo_raw)
+            Profesores.update(db, profesor, legajo_raw)
+        elif request.form["btn_submit"] == "btn_delete":
+            Profesores.delete(db, id)
+        return redirect(url_for('profesores'))
+    else:
+        data, permisos, data_det = Profesores.ver(db,id)
+        return render_template('/Tablas/profesores.html', title="Profesores", data=data, permisos=permisos, data_det=data_det)
+
+@app.route('/new_profesores', methods=['GET', 'POST'])
+def add_profesores():
+    if request.method == "POST":
+        profesor = Profesores(0, request.form["nombre"], request.form["apellido"], 
+                          request.form["documento"], request.form["celular"], 
+                          request.form["telefono"], request.form["email"], request.form["domicilio"])
+        legajo = request.files.getlist('legaj')
+        legajo_raw = convierte_img_a_64(legajo)
+        Profesores.nuevo(db, profesor, legajo_raw)
+        return redirect(url_for('profesores'))
+    else: 
+        return render_template('/Tablas/profesores.html', title="Profesores", data="", permisos="")
+
+@app.route('/profesores/legajo/dowload/<value>', methods=['GET', 'POST'])
+def descarga_legajo(value):
+    return convierte_64_a_img(db,value)
 
 def status_401(error):
     return redirect(url_for('login'))
