@@ -1,14 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\models",
-    "\\models\\entities",
     "\\static",
-    "\\static\\DataTables",
-    "\\static\\DataTables\\jQuery-3.6.0",
+    "\\static\\funciones",
     "\\templates",
     "\\templates\\Tablas"
   ],
-  "SelectedNode": "\\model.py",
+  "SelectedNode": "\\main.py",
   "PreviewInSolutionExplorer": false
 }
