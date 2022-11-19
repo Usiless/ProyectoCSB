@@ -48,7 +48,7 @@
                 <h2 class="text-center">Legajo</h2>
                 <br />
                 <div class="col-md-12 column">
-                    <table class="table table-bordered table-hover" id="tab_logic">
+                    <table class="table table-bordered table-hover" id="tabla_leg">
                         <thead>
                             <tr>
                                 <th class="text-center">#</th>
@@ -72,13 +72,13 @@
                             <tr id='addr{{data_det | length + 1}}'>
                         </tbody>
                     </table>
-                    <a id="add_row" class="btn btn-primary">Añadir fila</a>
+                    <a id="add_row" class="btn btn-primary" onclick="nuevo_lin({{data_det | length + 1}}, 'tabla_leg')">Añadir fila</a>
                     <a id='delete_row' class="btn btn-danger">Eliminar fila</a>
                 </div>
             </div>
             <div class="tab-pane fade" id="materias" role="tabpanel" aria-labelledby="materias-tab">
                 <div class="col-md-12 column">
-                    <table class="table table-bordered table-hover" id="tab_logic">
+                    <table class="table table-bordered table-hover" id="tabla_mat">
                         <thead>
                             <tr>
                                 <th class="text-center">#</th>
@@ -86,7 +86,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {%for row in data_det%}
+                            {%for row in data_det_2%}
                             <tr id='addr{{loop.index-1}}'>
                                 <td>{{loop.index}}</td>
                                 <td hidden><input type="text" id='id_det_{{row[0]}}' name="id_det" class="form-control det" value={{row[0]}} /></td>
@@ -94,15 +94,15 @@
                                 <td><a class="btn btn-primary col-12" href="/profesores/legajo/dowload/{{row[0]}}" target="_blank">Descargar</a></td>
                             </tr>
                             {%endfor%}
-                            <tr id='addr{{data_det | length }}'>
-                                <td>{{data_det | length + 1 }}</td>
+                            <tr id='addr{{data_det_2 | length }}'>
+                                <td>{{data_det_2 | length + 1 }}</td>
                                 <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" /></td>
                                 <td><input type="file" id='legaj' name="legaj" class="form-control" accept="image/png, image/gif, image/jpeg, image/pdf" /></td>
                             </tr>
-                            <tr id='addr{{data_det | length + 1}}'>
+                            <tr id='addr{{data_det_2 | length + 1}}'>
                         </tbody>
                     </table>
-                    <a id="add_row" class="btn btn-primary">Añadir fila</a>
+                    <a id="add_row" class="btn btn-primary" onclick="nuevo_lin({{data_det_2 | length + 1}}, 'tabla_mat')">Añadir fila</a>
                     <a id='delete_row' class="btn btn-danger">Eliminar fila</a>
                 </div>
             </div>

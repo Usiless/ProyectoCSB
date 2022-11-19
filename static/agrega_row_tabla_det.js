@@ -5,12 +5,8 @@ $(document).ready(function () {
         i = data.split("), (").length+1;
 	}
     var l = i;
-    $("#add_row").click(function () {
-        b = i - 1;
-        $('#addr' + i).html($('#addr' + b).html()).find('td:first-child').html(i + 1);
-        $('#tab_logic').append('<tr id="addr' + (i + 1) + '"</tr>');
-        i++;
-    });
+
+
     $("#delete_row").click(function () {
         if (i > l) {
             $("#addr" + (i - 1)).html('');
@@ -18,3 +14,23 @@ $(document).ready(function () {
         }
     });
 })
+
+function nuevo_lin(id, id_tabla){
+    // let id = tabla[0].id
+    // console.log(tabla)
+    // console.log(id)
+    // b = i - 1;
+    let inten = $('#'+id_tabla).find('tr').length-2;
+    console.log($('#'+id_tabla).find('tr'))
+    console.log(inten)
+    console.log(id_tabla)
+    if (inten-1>=id){
+        id=inten
+    }
+    let i = id
+    let b = i-1
+    console.log(document.getElementById('addr' + b))
+    $('#addr' + id).html($('#addr' + b).html()).find('td:first-child').html(id + 1);
+    $('#'+id_tabla).append('<tr id="addr' + (id + 1) + '"></tr>');
+    // i++;
+}
