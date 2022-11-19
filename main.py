@@ -357,8 +357,6 @@ def ver_profesores(id):
                 legajo.append([legajo_ids[i], legajo_data[i], id])
             legajo = limpia_sub_tabla_multi(legajo)
             legajo_raw = convierte_img_a_64_multi(legajo)
-            print(legajo)
-            print(legajo_raw)
             Profesores.update(db, profesor, legajo_raw)
         elif request.form["btn_submit"] == "btn_delete":
             Profesores.delete(db, id)
