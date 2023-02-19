@@ -2,6 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\static",
+    "\\static\\DataTables",
+    "\\static\\DataTables\\DataTables-1.13.1",
+    "\\static\\DataTables\\DataTables-1.13.1\\js",
     "\\static\\funciones",
     "\\templates",
     "\\templates\\Tablas"
