@@ -4,4 +4,6 @@
 
 {% block content %}
 <h1> Bienvenido, {{current_user.fullname}} al índice</h1>
+<h1>Permisos</h1>
+<a> {{session['permisos']['afecciones']['leer']}}</a>
 {% endblock %}

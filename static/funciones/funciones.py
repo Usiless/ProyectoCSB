@@ -35,12 +35,25 @@ def limpia_sub_tabla_uniq(detalle_raw):
     detalle = []
     for row in detalle_raw:
         if row!="":
-            detalle.append(int(row))
+            detalle.append(row)
     return detalle
 
-def limpia_sub_tabla_multi(detalle_raw):
+def limpia_sub_tabla_multi_arch(detalle_raw):
     detalle = []
     for row in detalle_raw:
         if str(row[1])!="<FileStorage: '' ('application/octet-stream')>":
             detalle.append(row)
     return detalle
+
+
+def combina_varios(grados, estados, materias):
+    mat_grad_prof = []
+    for i in range(0,len(grados)):
+        if grados[i] != '':
+            a = estados[i]
+            if a=='on':
+                a = 1
+            else:
+                a = 0
+            mat_grad_prof.append([grados[i], materias[i], a])
+    return mat_grad_prof

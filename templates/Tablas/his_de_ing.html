@@ -8,10 +8,9 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Seleccionar</h4>
-                    <!--<button type="button" class="btn-close" data-bs-dismiss="modal"></button>-->
                 </div>
                 <div class="modal-body">
-                    <div class="row" <!--style="padding:25px;"-->
+                    <div class="row">
                         <table id="tabla" class="hover display" style="width:100%"></table>
                     </div>
                     <a id="aux" value="0" hidden></a>
@@ -46,26 +45,31 @@
                 </thead>
                 <tbody>
                     {%for row in data_det%}
-                    <tr id='addr{{loop.index-1}}'>
+                    <tr id='addr_{{loop.index-1}}_tab_logic'>
                         <td class="text-center align-middle">{{loop.index}}</td>
                         <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" value={{row[0]}} /></td>
-                        <td><input type="text" id='nombre[]' class="form-control det" value={{row[1]}} disabled /></td>
-                        <td><input type="email" id='apellido[]' class="form-control det" value={{row[2]}} disabled /></td>
-                        <td><a class="btn btn-primary col-12" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a></td>
+                        <td><input type="text" id='nombre' class="form-control det" value={{row[1]}} disabled /></td>
+                        <td><input type="text" id='apellido' class="form-control det" value={{row[2]}} disabled /></td>
+                        <td class="text-center">
+                            <a class="btn btn-primary col-6" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a>
+                            <a class="btn btn-danger col-5" id='delete_row' onclick="delete_lin(this, tab_logic.id)">Eliminar fila</a>
+                        </td>
                     </tr>
                     {%endfor%}
-                    <tr id='addr{{data_det | length }}'>
+                    <tr id='addr_{{data_det | length }}_tab_logic'>
                         <td class="text-center align-middle">{{data_det | length + 1 }}</td>
-                        <td hidden><input type="text" id='id_det' name="id_det" class="form-control det"/></td>
-                        <td><input type="text" id='nombre[]' class="form-control det" disabled /></td>
-                        <td><input type="email" id='apellido[]' class="form-control det" disabled /></td>
-                        <td><a class="btn btn-primary col-12" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a></td>
+                        <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" /></td>
+                        <td><input type="text" id='nombre' class="form-control det" disabled /></td>
+                        <td><input type="text" id='apellido' class="form-control det" disabled /></td>
+                        <td class="text-center">
+                            <a class="btn btn-primary col-6" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a>
+                            <a class="btn btn-danger col-5" id='delete_row' onclick="delete_lin(this, tab_logic.id)">Eliminar fila</a>
+                        </td>
                     </tr>
-                    <tr id='addr{{data_det | length + 1}}'>
+                    <tr id='addr_{{data_det | length + 1}}_tab_logic'>
                 </tbody>
             </table>
-            <a id="add_row" class="btn btn-primary">Añadir fila</a>
-            <a id='delete_row' class="btn btn-danger">Eliminar fila</a>
+            <a id="add_row" class="btn btn-primary" onclick="nuevo_lin({{data_det | length + 1}}, 'tab_logic')">Añadir fila</a>
         </div>
         <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
     </form>
@@ -117,7 +121,6 @@
         return string.charAt(0).toUpperCase() + string.slice(1);
     };
 </script>
-
 <script>
     function carga_datos_en_detalle() {
         var table = $('#tabla').DataTable();
@@ -139,8 +142,7 @@
         document.getElementById("aux").value = i[0].id;
     }
 </script>
-
-<script type="text/javascript" id="agrega_row" data="{{ data_det }}" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='date_today.js')}}"></script>
 <script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
 {% endblock %}

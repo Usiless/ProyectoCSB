@@ -49,11 +49,11 @@
                            window.location = link_add;
                        },
                    },
-                   {
-                       name: "Nuevo_excel",
-                       extend: 'alert',
-                       text: 'Nuevo desde Excel'
-                   }
+                   //{
+                   //    name: "Nuevo_excel",
+                   //    extend: 'alert',
+                   //    text: 'Nuevo desde Excel'
+                   //}
                ],
                "columnDefs": [
                    {
@@ -92,15 +92,6 @@
                ]
            })
        }
-       /*var table = $('#tabla').DataTable();
-
-       $('#tabla tbody').on('click', 'tr', function () {
-           if ($(this).hasClass('selected')) {
-               $(this).removeClass('selected');
-           } else {
-               table.$('tr.selected').removeClass('selected');
-           }
-       });*/
    });
 
    function capitalizeFirstLetter(string) {
