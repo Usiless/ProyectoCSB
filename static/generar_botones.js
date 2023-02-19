@@ -7,9 +7,6 @@
 
     if (data) {
         console.log("No está vacío");
-        if (eliminar == 1) {
-            agregar_eliminar();
-        }
         if (actualizar == 1) {
             agregar_editar();
             for (var i = 0; i < e.length; i++) {
@@ -17,6 +14,9 @@
                     e[i].removeAttribute("disabled");
                 }
             }
+        }
+        if (eliminar == 1) {
+            agregar_eliminar();
         }
         else {
             for (var i = 0; i < e.length; i++) {

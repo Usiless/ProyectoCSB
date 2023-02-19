@@ -34,15 +34,15 @@
                     </div>
                     <div class="mt-3 col-md-4 p-1">
                         <label for="telefono" class="form-label">Teléfono</label>
-                        <input type="tel" class="form-control" id="telefono" name="telefono" autofocus value="{{data[4]}}" />
+                        <input type="tel" class="form-control" id="telefono" name="telefono" autofocus value="{{data[5]}}" />
                     </div>
                     <div class="mt-3 col-md-4 p-1">
                         <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" autofocus value="{{data[5]}}" />
+                        <input type="email" class="form-control" id="email" name="email" autofocus value="{{data[6]}}" />
                     </div>
                     <div class="mt-3 mb-2 col-md-4 p-1">
                         <label for="domicilio" class="form-label">Domicilio</label>
-                        <input type="text" class="form-control" id="domicilio" name="domicilio" autofocus value="{{data[6]}}" />
+                        <input type="text" class="form-control" id="domicilio" name="domicilio" autofocus value="{{data[7]}}" />
                     </div>
                 </div>
                 <h2 class="text-center">Legajo</h2>
@@ -57,23 +57,26 @@
                         </thead>
                         <tbody>
                             {%for row in data_det%}
-                            <tr id='addr{{loop.index-1}}'>
-                                <td>{{loop.index}}</td>
-                                <td hidden><input type="text" id='id_det_{{row[0]}}' name="id_det" class="form-control det" value={{row[0]}} /></td>
-                                <td><input type="file" id='legaj_{{row[0]}}' name="legaj" class="form-control" accept="image/png, image/gif, image/jpeg" /></td>
-                                <td><a class="btn btn-primary col-12" href="/profesores/legajo/dowload/{{row[0]}}" target="_blank">Descargar</a></td>
+                            <tr id='addr_{{loop.index-1}}_tabla_leg'>
+                                <td class="text-center align-middle">{{loop.index}}</td>
+                                <td hidden><input type="text" id='id_det_{{row}}' name="id_det_leg" class="form-control det" value={{row}} /></td>
+                                <td><input type="file" id='legaj_{{row}}' name="legaj" class="form-control" accept="image/png, image/gif, image/jpeg" /></td>
+                                <td class="text-center">
+                                    <a class="btn btn-primary col-6" href="{{url_for('descarga_legajo', value=row)}}" target="_blank">Descargar</a>
+                                    <a class="btn btn-danger col-5" id='delete_row' onclick="delete_lin(this, tabla_leg.id)">Eliminar fila</a>
+                                </td>
                             </tr>
-                            {%endfor%}
-                            <tr id='addr{{data_det | length }}'>
-                                <td>{{data_det | length + 1 }}</td>
-                                <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" /></td>
+                        {%endfor%}
+                            <tr id='addr_{{data_det | length }}_tabla_leg'>
+                                <td class="text-center align-middle">{{data_det | length + 1 }}</td>
+                                <td hidden><input type="text" id='id_det' name="id_det_leg" class="form-control det" /></td>
                                 <td><input type="file" id='legaj' name="legaj" class="form-control" accept="image/png, image/gif, image/jpeg, image/pdf" /></td>
+                                <td class="text-center"><a class="btn btn-danger col-12" id='delete_row' onclick="delete_lin(this, tabla_leg.id)">Eliminar fila</a></td>
                             </tr>
-                            <tr id='addr{{data_det | length + 1}}'>
+                            <tr id='addr_{{data_det | length + 1}}_tabla_leg'>
                         </tbody>
                     </table>
-                    <a id="add_row" class="btn btn-primary" onclick="nuevo_lin({{data_det | length + 1}}, 'tabla_leg')">Añadir fila</a>
-                    <a id='delete_row' class="btn btn-danger">Eliminar fila</a>
+                    <a id="add_row" class="btn btn-primary" onclick="nuevo_lin({{data_det | length}}, 'tabla_leg')">Añadir fila</a>
                 </div>
             </div>
             <div class="tab-pane fade" id="materias" role="tabpanel" aria-labelledby="materias-tab">
@@ -82,28 +85,77 @@
                         <thead>
                             <tr>
                                 <th class="text-center">#</th>
-                                <th class="text-center">Archivo</th>
+                                <th class="text-center">Grados</th>
+                                <th class="text-center">Materias</th>
+                                <th class="text-center">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
                             {%for row in data_det_2%}
-                            <tr id='addr{{loop.index-1}}'>
-                                <td>{{loop.index}}</td>
-                                <td hidden><input type="text" id='id_det_{{row[0]}}' name="id_det" class="form-control det" value={{row[0]}} /></td>
-                                <td><input type="file" id='legaj_{{row[0]}}' name="legaj" class="form-control" accept="image/png, image/gif, image/jpeg" /></td>
-                                <td><a class="btn btn-primary col-12" href="/profesores/legajo/dowload/{{row[0]}}" target="_blank">Descargar</a></td>
+                            <tr id='addr_{{loop.index-1}}_tabla_mat'>
+                                <td class="text-center align-middle">{{loop.index}}</td>
+                                <td>
+                                    <select id="grados" class="form-select" name="grados" required disabled>
+                                        <option value="">Seleccionar Grado</option>
+                                        {%for lin in data_sec%}
+                                        {% if lin[0] == row[0] %}
+                                        <option value={{lin[0]}} selected>{{lin[1]}} - {{lin[2]}}</option>
+                                        {% else %}
+                                        <option value={{lin[0]}}>{{lin[1]}} - {{lin[2]}}</option>
+                                        {% endif %}
+                                        {%endfor%}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="materias" class="form-select" name="materias" required disabled>
+                                        <option value="">Seleccionar Materias</option>
+                                        {%for lin in data_sec_2%}
+                                        {% if lin[0] == row[1] %}
+                                        <option value={{lin[0]}} selected>{{lin[1]}}</option>
+                                        {% else %}
+                                        <option value={{lin[0]}}>{{lin[1]}}</option>
+                                        {% endif %}
+                                        {%endfor%}
+                                    </select>
+                                </td>
+                                <td class="align-middle text-center">
+                                    {% if row[3] == 1 %}
+                                    <input class="form-check-input" type="checkbox" name="estado" value="{{row[0]}}, {{row[1]}}, {{data[0]}}" checked>
+                                    {% else %}
+                                    <input class="form-check-input" type="checkbox" name="estado" value="{{row[0]}}, {{row[1]}}, {{data[0]}}" >
+                                    {% endif %}
+                                </td>
                             </tr>
                             {%endfor%}
-                            <tr id='addr{{data_det_2 | length }}'>
-                                <td>{{data_det_2 | length + 1 }}</td>
-                                <td hidden><input type="text" id='id_det' name="id_det" class="form-control det" /></td>
-                                <td><input type="file" id='legaj' name="legaj" class="form-control" accept="image/png, image/gif, image/jpeg, image/pdf" /></td>
+                            <tr id='addr_{{data_det_2 | length }}_tabla_mat'>
+                                <td class="text-center align-middle">{{data_det_2 | length + 1 }}</td>
+                                <td>
+                                    <select id="grados" class="form-select" name="grados">
+                                        <option selected value="">Seleccionar Grado</option>
+                                        {%for row in data_sec%}
+                                        <option value={{row[0]}}>{{row[1]}} - {{row[2]}}</option>
+                                        {%endfor%}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="materias" class="form-select" name="materias">
+                                        <option value="">Seleccionar Materias</option>
+                                        {%for lin in data_sec_2%}
+                                        <option value={{lin[0]}}>{{lin[1]}}</option>
+                                        {%endfor%}
+                                    </select>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <input class="form-check-input" type="checkbox" name="estado_nuevo" value="1" checked>
+                                </td>
+                                <td class="text-center">
+                                    <a class="btn btn-danger col-12" id='delete_row' onclick="delete_lin(this, tabla_mat.id)">Eliminar fila</a>
+                                </td>
                             </tr>
-                            <tr id='addr{{data_det_2 | length + 1}}'>
+                            <tr id='addr_{{data_det_2 | length + 1}}_tabla_mat'>
                         </tbody>
                     </table>
-                    <a id="add_row" class="btn btn-primary" onclick="nuevo_lin({{data_det_2 | length + 1}}, 'tabla_mat')">Añadir fila</a>
-                    <a id='delete_row' class="btn btn-danger">Eliminar fila</a>
+                    <a id="add_row" class="btn btn-primary" onclick="nuevo_lin({{data_det_2 | length}}, 'tabla_mat')">Añadir fila</a>
                 </div>
             </div>
         </div>
@@ -111,6 +163,6 @@
         <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
     </form>
 </div>
-<script type="text/javascript" id="agrega_row" data="{{ data_det }}" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
+<script type="text/javascript" id="agrega_row" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
 <script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
 {% endblock %}

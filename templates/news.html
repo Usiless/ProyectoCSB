@@ -1,81 +1,148 @@
 ﻿{% extends 'base.html' %}
-
+{% block title %}{{title}}{% endblock %}
 {% block content %}
-<div class="container">
+
+<style>
+    .gradient-custom {
+        /* fallback for old browsers */
+        background: #a18cd1;
+        /* Chrome 10-25, Safari 5.1-6 */
+        background: -webkit-linear-gradient( 45deg, rgba(29, 236, 197, 0.6), rgba(91, 14, 214, 0.6) 100% );
+        /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        background: linear-gradient( 45deg, rgba(29, 236, 197, 0.6), rgba(91, 14, 214, 0.6) 100% );
+    }
+</style>
+
+<div class="container mt-2">
     <div class="row">
         <!-- Blog entries-->
-        <div class="col-lg-12">
-            <!-- Featured blog post-->
-            <div class="card mb-4">
-                <a href="#!"><img class="card-img-top" src="https://dummyimage.com/850x350/dee2e6/6c757d.jpg" alt="..."></a>
-                <div class="card-body">
-                    <div class="small text-muted">January 1, 2022</div>
-                    <h2 class="card-title">Featured Post Title</h2>
-                    <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis aliquid atque, nulla? Quos cum ex quis soluta, a laboriosam. Dicta expedita corporis animi vero voluptate voluptatibus possimus, veniam magni quis!</p>
-                    <a class="btn btn-primary" href="#!">Read more →</a>
-                </div>
+        <!-- Featured blog post-->
+        <div class="card mb-4 rounded "
+             style="background: linear-gradient(to left, rgba(255,255,255,0) 20%, rgba(255,255,255,1)),
+                    url({{url_for('static', filename='img/Noticia_1.jpg') }}); background-size: cover">
+            <div class="card-body">
+                <div class="small text-muted">{{data[0][2]}}</div>
+                <h2 class="card-title">{{data[0][1]}}</h2>
+                <p class="card-text">{{data[0][3]}}</p>
+                <a class="btn btn-primary" href="{{url_for('ver_noticias',id=data[0][0])}}">Leer más →</a>
+                {%if permisos[0] == 1%}
+                <a class="btn btn-primary" href="{{url_for('edit_noticias',id=data[0][0])}}">Editar</a>
+                {%endif%}
             </div>
-            <!-- Nested row for non-featured blog posts-->
-            <div class="row">
-                <div class="col-lg-6">
+        </div>
+        <!-- Nested row for non-featured blog posts-->
+        <div class="row">
+            {%for i in range(1,cant,2)%}
+            <div class="col-lg-6">
+                <div class="card mb-4 rounded "
+                     style="background: linear-gradient(to left, rgba(255,255,255,0) 20%, rgba(255,255,255,1)),
+                            url({{url_for('static', filename='img/Noticia_2.jpg') }}); background-size: cover">
                     <!-- Blog post-->
-                    <div class="card mb-4">
-                        <a href="#!"><img class="card-img-top" src="https://dummyimage.com/700x350/dee2e6/6c757d.jpg" alt="..."></a>
-                        <div class="card-body">
-                            <div class="small text-muted">January 1, 2022</div>
-                            <h2 class="card-title h4">Post Title</h2>
-                            <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis aliquid atque, nulla.</p>
-                            <a class="btn btn-primary" href="#!">Read more →</a>
-                        </div>
-                    </div>
-                    <!-- Blog post-->
-                    <div class="card mb-4">
-                        <a href="#!"><img class="card-img-top" src="https://dummyimage.com/700x350/dee2e6/6c757d.jpg" alt="..."></a>
-                        <div class="card-body">
-                            <div class="small text-muted">January 1, 2022</div>
-                            <h2 class="card-title h4">Post Title</h2>
-                            <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis aliquid atque, nulla.</p>
-                            <a class="btn btn-primary" href="#!">Read more →</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <!-- Blog post-->
-                    <div class="card mb-4">
-                        <a href="#!"><img class="card-img-top" src="https://dummyimage.com/700x350/dee2e6/6c757d.jpg" alt="..."></a>
-                        <div class="card-body">
-                            <div class="small text-muted">January 1, 2022</div>
-                            <h2 class="card-title h4">Post Title</h2>
-                            <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis aliquid atque, nulla.</p>
-                            <a class="btn btn-primary" href="#!">Read more →</a>
-                        </div>
-                    </div>
-                    <!-- Blog post-->
-                    <div class="card mb-4">
-                        <a href="#!"><img class="card-img-top" src="https://dummyimage.com/700x350/dee2e6/6c757d.jpg" alt="..."></a>
-                        <div class="card-body">
-                            <div class="small text-muted">January 1, 2022</div>
-                            <h2 class="card-title h4">Post Title</h2>
-                            <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Reiciendis aliquid atque, nulla? Quos cum ex quis soluta, a laboriosam.</p>
-                            <a class="btn btn-primary" href="#!">Read more →</a>
-                        </div>
+                    <div class="card-body">
+                        <div class="small text-muted">{{data[i][2]}}</div>
+                        <h2 class="card-title h4">{{data[i][1]}}</h2>
+                        <p class="card-text">{{data[i][3]}}</p>
+                        <a class="btn btn-primary" href="{{url_for('ver_noticias',id=data[i][0])}}">Leer más →</a>
+                        {%if permisos[0] == 1%}
+                        <a class="btn btn-primary" href="{{url_for('edit_noticias',id=data[i][0])}}">Editar</a>
+                        {%endif%}
                     </div>
                 </div>
             </div>
-            <!-- Pagination-->
-            <nav aria-label="Pagination">
-                <hr class="my-0">
-                <ul class="pagination justify-content-center my-4">
-                    <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Newer</a></li>
-                    <li class="page-item active" aria-current="page"><a class="page-link" href="#!">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#!">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#!">3</a></li>
-                    <li class="page-item disabled"><a class="page-link" href="#!">...</a></li>
-                    <li class="page-item"><a class="page-link" href="#!">15</a></li>
-                    <li class="page-item"><a class="page-link" href="#!">Older</a></li>
-                </ul>
-            </nav>
+            {%endfor%}
         </div>
     </div>
+    <!-- Pagination-->
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item previous-page disable"><a class="page-link" href="#">Anterior</a></li>
+                <li class="page-item current-page active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item dots"><a class="page-link" href="#">...</a></li>
+                <li class="page-item current-page"><a class="page-link" href="#">5</a></li>
+                <li class="page-item current-page"><a class="page-link" href="#">6</a></li>
+                <li class="page-item dots"><a class="page-link" href="#">...</a></li>
+                <li class="page-item current-page"><a class="page-link" href="#">10</a></li>
+                <li class="page-item next-page"><a class="page-link" href="#">Siguiente</a></li>
+            </ul>
+        </nav>
+    <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end">
+        {%if permisos[2] == 1%}
+        <a class="btn btn-primary" href="{{url_for('add_noticias')}}">Agregar</a>
+        {%endif%}
+    </div>
 </div>
+
+<script type="text/javascript">
+    function getPageList(totalPages, page, maxLength) {
+        function range(start, end) {
+            return Array.from(Array(end - start + 1), (_, i) => i + start);
+        }
+
+        var sideWidth = maxLength < 9 ? 1 : 2;
+        var leftWidth = (maxLength - sideWidth * 2 - 3) >> 1;
+        var rightWidth = (maxLength - sideWidth * 2 - 3) >> 1;
+
+        if (totalPages <= maxLength) {
+            return range(1, totalPages);
+        }
+
+        if (page <= maxLength - sideWidth - 1 - rightWidth) {
+            return range(1, maxLength - sideWidth - 1).concat(0, range(totalPages - sideWidth + 1, totalPages));
+        }
+
+        if (page >= totalPages - sideWidth - 1 - rightWidth) {
+            return range(1, sideWidth).concat(0, range(totalPages - sideWidth - 1 - rightWidth - leftWidth, totalPages));
+        }
+
+        return range(1, sideWidth).concat(0, range(page - leftWidth, page + rightWidth), 0, range(totalPages - sideWidth + 1, totalPages));
+    }
+
+    $(function () {
+        var numberOfItems = $(".row .col-lg-6").length;
+        var limitPerPage = 4; //How many card items visible per a page
+        var totalPages = Math.ceil(numberOfItems / limitPerPage);
+        var paginationSize = 7; //How many page elements visible in the pagination
+        var currentPage;
+
+        function showPage(whichPage) {
+            if (whichPage < 1 || whichPage > totalPages) return false;
+
+            currentPage = whichPage;
+
+            $(".row .col-lg-6").hide().slice((currentPage - 1) * limitPerPage, currentPage * limitPerPage).show();
+
+            $(".pagination li").slice(1, -1).remove();
+
+            getPageList(totalPages, currentPage, paginationSize).forEach(item => {
+                $("<li>").addClass("page-item").addClass(item ? "current-page" : "dots")
+                    .toggleClass("active", item === currentPage).append($("<a>").addClass("page-link")
+                        .attr({ href: "javascript:void(0)" }).text(item || "...")).insertBefore(".next-page");
+            });
+
+            $(".previous-page").toggleClass("disable", currentPage === 1);
+            $(".next-page").toggleClass("disable", currentPage === totalPages);
+            return true;
+        }
+
+        $(".pagination").append(
+            $("<li>").addClass("page-item").addClass("previous-page").append($("<a>").addClass("page-link").attr({ href: "javascript:void(0)" }).text("Anterior")),
+            $("<li>").addClass("page-item").addClass("next-page").append($("<a>").addClass("page-link").attr({ href: "javascript:void(0)" }).text("Siguiente"))
+        );
+
+        $(".row").show();
+        showPage(1);
+
+        $(document).on("click", ".pagination li.current-page:not(.active)", function () {
+            return showPage(+$(this).text());
+        });
+
+        $(".next-page").on("click", function () {
+            return showPage(currentPage + 1);
+        });
+
+        $(".previous-page").on("click", function () {
+            return showPage(currentPage - 1);
+        });
+    });
+</script>
 {% endblock %}
