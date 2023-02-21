@@ -1,0 +1,53 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+
+<div class="container">
+    <form method="post" id="myForm">
+        <div class="input-group gap-2 mt-3 mb-2">
+            <div class="col-4">
+                <label class="form-label">Fecha</label>
+                <input class="form-control" value="{{data[2]}}" disabled>
+            </div>
+            <div class="col-4">
+                <label class="form-label">Tabla</label>
+                <input class="form-control" value="{{data[3]}}" disabled>
+            </div>
+            <div class="col-4">
+                <label class="form-label">Usuario</label>
+                <input class="form-control" value="{{data[1]}}" disabled>
+            </div>
+            <div class="col-4">
+                <label class="form-label">Tipo de cambio</label>
+                <input class="form-control" value="{{data[4]}}" disabled>
+            </div>
+        </div>
+        <div class="col-md-12 column">
+            <table class="table table-bordered" id="tab_logic">
+                <thead>
+                    <tr>
+                        {% for key in data_det.keys() %}
+                        <th class="text-center">{{ key }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for row in data_det.values() %}
+                        <td>
+                            {%if loop.index == 1 %}
+                            <a href="/{{data[3]}}/{{row}}">{{row}}</a>
+                            {%else%}
+                            <p class="mb-1">{{row}}</p>
+                            {%endif%}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
+    </form>
+</div>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
+{% endblock %}

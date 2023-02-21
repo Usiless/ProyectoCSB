@@ -3,9 +3,7 @@ from model import Legajo
 import base64
 from PIL import Image
 
-def convierte_64_a_img(db, value):
-    datos_sec = Legajo.get_to_descargar(db, value)
-    image = datos_sec[1]
+def convierte_64_a_img(image):
     img = str(image)
     img = img[2:len(img)-1]
     binary_data = base64.b64decode(image)
@@ -45,6 +43,15 @@ def limpia_sub_tabla_multi_arch(detalle_raw):
             detalle.append(row)
     return detalle
 
+def limpia_arch(arch):
+    if str(arch)!="<FileStorage: '' ('application/octet-stream')>":
+        return arch
+
+def convierte_img_a_64_uniq(arch):
+    if arch:
+        a = arch.read()
+        arch_raw = base64.b64encode(a)
+        return arch_raw
 
 def combina_varios(grados, estados, materias):
     mat_grad_prof = []

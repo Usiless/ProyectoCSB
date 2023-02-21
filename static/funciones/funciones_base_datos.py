@@ -1,5 +1,4 @@
-﻿import datetime
-import json
+﻿import json
 from flask import flash, session
 from flask_login import current_user
 
@@ -36,6 +35,7 @@ def get_tabla_custom_req(db, sql, tabla, col):
             a = str(str(data).replace("}, {", ", "))
             a = str(str(a).replace("'", f"{chr (34)}"))
             data = a
+        print(data)
         response = {'data': json.loads(data),
                     'tabla': f"{tabla}",
                     'orden': col,
@@ -47,7 +47,7 @@ def get_tabla_custom_req(db, sql, tabla, col):
         flash(err)
         return None
 
-def get_tabla_custom_req_raw(db, sql, tabla):
+def get_tabla_custom_req_raw(db, sql):
     try:
         cursor = db.connection.cursor()
         cursor.execute(sql)
@@ -109,14 +109,17 @@ def get_tabla(db, columnas, col, tabla, orden, estado):
 def get_tabla_compleja(db, columnas, col, tabla, tabla_sec, orden, estado, filtro_val=""):
     permisos = obtener_permisos(db, tabla)
     nat_joins = ''
-    for i in tabla_sec:
-        nat_joins = nat_joins + f' NATURAL JOIN {i}'
-
+    if isinstance(tabla_sec,tuple):
+        for i in tabla_sec:
+            nat_joins = nat_joins + f' NATURAL JOIN {i}'
+    else:
+        nat_joins = nat_joins + f' NATURAL JOIN {tabla_sec}'
     try:
         if filtro_val:
             sql = f"SELECT {columnas} FROM {tabla} {nat_joins} {'WHERE estado = 1 ' * estado} {'AND' * estado} {'WHERE' * (1 - estado)} {filtro_val} ORDER BY {orden} asc;"
         else:
             sql = f"SELECT {columnas} FROM {tabla} {nat_joins} {'WHERE estado = 1 ' * estado} ORDER BY {orden} asc;"
+        print(sql)
         cursor = db.connection.cursor()
         cursor.execute(sql)
         lista = cursor.fetchall()
@@ -159,20 +162,31 @@ def get_tabla_compleja(db, columnas, col, tabla, tabla_sec, orden, estado, filtr
         return None
 
 def get_tabla_compleja_raw(db, columnas, nombre_tabla, tabla_sec, estado, filtro_val=""):
-        cursor = db.connection.cursor()
-        try:
-            if filtro_val:
-                sql = f"SELECT {columnas} FROM {nombre_tabla} NATURAL JOIN {tabla_sec} {'WHERE estado = 1 ' * estado}{'AND' * estado} {'WHERE' * (1 - estado)} {'AND' * estado} {filtro_val};"
+    nat_joins = ''
+    cursor = db.connection.cursor()
+    if isinstance(tabla_sec,tuple):
+        for i in tabla_sec:
+            nat_joins = nat_joins + f' NATURAL JOIN {i}'
+    else:
+        nat_joins = nat_joins + f' NATURAL JOIN {tabla_sec}'
+    
+    try:
+        if filtro_val:
+            if estado:
+                sql = f"SELECT {columnas} FROM {nombre_tabla} {nat_joins} WHERE estado = 1 AND {filtro_val};"
             else:
-                sql = f"SELECT {columnas} FROM {nombre_tabla} NATURAL JOIN {tabla_sec} {'WHERE estado = 1 ' * estado};"
-            cursor.execute(sql)
-            results = cursor.fetchall()
-            return results
-        except db.connection.Error as error :
-            err = {"title": "Error!",
-                   "detalle":  str(error)}
-            flash(err)
-            return None
+                sql = f"SELECT {columnas} FROM {nombre_tabla} {nat_joins} WHERE {filtro_val};"
+        else:
+            sql = f"SELECT {columnas} FROM {nombre_tabla} {nat_joins} {'WHERE estado = 1 ' * estado};"
+        print(sql)
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        return results
+    except db.connection.Error as error :
+        err = {"title": "Error!",
+                "detalle":  str(error)}
+        flash(err)
+        return None
 
 def get_tabla_raw(db, columnas, nombre_tabla, estado, order=""):
     cursor = db.connection.cursor()
@@ -200,6 +214,7 @@ def nuevo(db,val, nombre_tabla, cols):
         else:
             sql = f"INSERT INTO {nombre_tabla} ({cols}) VALUES ({cantidad_col * '%s, '}%s)"
             cursor.execute(sql, val)
+        print(sql, val)
         db.connection.commit()
         return None
     except db.connection.Error as error :
@@ -230,6 +245,7 @@ def ver_child(db, id, nombre_tabla, col_id):
         columns = columns + col_id[i]
     try:
         sql = f"SELECT {columns} from {nombre_tabla} WHERE {col_id[0]} = {id}"
+        print(sql)
         cursor.execute(sql)
         results = cursor.fetchall()
         for row in results:
@@ -330,6 +346,7 @@ def ver(db, id, nombre_tabla, col_id, estado):
     cursor = db.connection.cursor()
     try:
         sql = f"SELECT * from {nombre_tabla} WHERE {col_id} = {id} {'AND estado = 1' * estado}"
+        print(sql)
         cursor.execute(sql)
         results = cursor.fetchone()
         return results

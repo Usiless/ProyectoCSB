@@ -1,0 +1,127 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+<div class="container">
+    <form method="post" id="myForm" onSubmit="return confirm('Confirmar cambios?');" enctype="multipart/form-data">
+        <div class="input-group">
+            <div hidden><input type="text" id='id_med' name="id_med" class="form-control det" value="{{data[0]}}" /></div>
+            <div hidden><input type="text" id='id_alum' name="id_alum" class="form-control det" value="{{data[4]}}" /></div>
+            <div class="mt-3 col-3">
+                <label for="fecha" class="form-label">Fecha</label>
+                <input type="date" class="form-control" id="fecha" name="fecha" autofocus value="{{data[1]}}" />
+            </div>
+            <div class="mt-3 mb-2 col-md-4 p-1">
+                <label for="doctor" class="form-label">Doctor</label>
+                <select id="doctor" class="form-select" name="doctor" onchange="cambia_ref()">
+                    <option selected value="">Seleccionar doctor</option>
+                    {%for lin in data_sec%}
+                    {% if lin[0] == data[3] %}
+                    <option value={{lin[0]}} value_2="{{lin[2]}}" selected>{{lin[1]}}</option>
+                    {%else%}
+                    <option value={{lin[0]}} value_2="{{lin[2]}}">{{lin[1]}}</option>
+                    {% endif %}
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label for="nro_ref" class="form-label">Nro de Registro Profesional</label>
+                <input type="text" class="form-control det" id="nro_ref" name="nro_ref" disabled />
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label class="form-label">Aptitud</label>
+                <div class="form-check">
+                    {% if data[2] == 'A' %}
+                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault1" value="A"checked>
+                    {%else%}
+                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault1" value="A">
+                    {% endif %}
+                    <label class="form-check-label" for="flexRadioDefault1">Apto</label>
+                </div>
+                <div class="form-check">
+                    {% if data[2] == 'O' %}
+                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault2" value="O" checked>
+                    {%else%}
+                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault2" value="O">
+                    {% endif %}
+                    <label class="form-check-label" for="flexRadioDefault2">Apto con observaciones</label>
+                </div>
+                <div class="form-check">
+                    {% if data[2] == "N" %}
+                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault3" value="N" checked>
+                    {%else%}
+                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault2" value="N">
+                    {% endif %}
+                    <label class="form-check-label" for="flexRadioDefault3">No apto</label>
+                </div>
+            </div>
+        </div>
+        <h2 class="text-center">Observaciones médicas</h2>
+        <div class="col-md-12 column">
+            <table class="table table-bordered table-hover" id="tabla_med">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">Afección</th>
+                        <th class="text-center">Recomendación</th>
+                        <th class="text-center">
+                            <a id="add_row" class="btn btn-primary col-12" onclick="nuevo_lin({{data_det | length}}, 'tabla_med')">Añadir fila</a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%for row in data_det%}
+                    <tr id='addr_{{loop.index-1}}_tabla_med'>
+                        <td class="text-center align-middle">{{loop.index}}</td>
+                        <td hidden><input type="text" id='id_det_med' name="id_det_med" class="form-control det" value="{{row[0]}}" /></td>
+                        <td>
+                            <select id="affection" name="affection" class="form-select">
+                                <option selected value="">Seleccionar Afección</option>
+                                {%for lin in data_sec_2%}
+                                {% if lin[0] == row[0] %}
+                                <option value={{lin[0]}} selected>{{lin[1]}}</option>
+                                {% else %}
+                                <option value={{lin[0]}}>{{lin[1]}}</option>
+                                {% endif %}
+                                {%endfor%}
+                            </select>
+                        </td>
+                        <td><input type="text" id='recomm' name="recomm" class="form-control" value="{{row[2]}}" /></td>
+                        <td class="text-center">
+                            <a class="btn btn-danger col-12" id='delete_row' onclick="delete_lin(this, tabla_med.id)">Eliminar fila</a>
+                        </td>
+                    </tr>
+                    {%endfor%}
+                    <tr id='addr_{{data_det | length }}_tabla_med'>
+                        <td class="text-center align-middle">{{data_det | length + 1 }}</td>
+                        <td hidden><input type="text" id='id_det_med' name="id_det_med" class="form-control det"/></td>
+                        <td>
+                            <select id="affection" class="form-select" name="affection">
+                                <option selected value="">Seleccionar Afección</option>
+                                {%for row in data_sec_2%}
+                                <option value={{row[0]}}>{{row[1]}}</option>
+                                {%endfor%}
+                            </select>
+                        </td>
+                        <td><input type="text" id='recomm' name="recomm" class="form-control det" /></td>
+                        <td class="text-center">
+                            <a class="btn btn-danger col-12" id='delete_row' onclick="delete_lin(this, tabla_med.id)">Eliminar fila</a>
+                        </td>
+                    </tr>
+                    <tr id='addr_{{data_det | length + 1 }}_tabla_med'>
+                </tbody>
+            </table>
+        </div>
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
+    </form>
+</div>
+<script type="text/javascript" id="agrega_row" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
+<script>
+    $(document).ready(cambia_ref())
+    function cambia_ref() {
+        let med = document.getElementById("doctor");
+        let ref = med.options[med.selectedIndex].getAttribute("value_2");
+        document.getElementById("nro_ref").value = ref;
+    }
+</script>
+{% endblock %}

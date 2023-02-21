@@ -15,15 +15,15 @@
                 }
             }
         }
-        if (eliminar == 1) {
-            agregar_eliminar();
-        }
         else {
             for (var i = 0; i < e.length; i++) {
                 if (e[i].className != "form-control det") {
                     e[i].setAttribute('disabled', 'disabled');
                 }
             }
+        }
+        if (eliminar == 1) {
+            agregar_eliminar();
         }
     }
     else {

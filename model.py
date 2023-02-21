@@ -1,4 +1,5 @@
 from static.funciones.funciones_base_datos import *
+from datetime import datetime
 
 class Materia():
     nombre_tabla = "materias"
@@ -150,9 +151,13 @@ class Tutor():
 
     def update(db, tutor):
         val = tutor.nombre, tutor.apellido, tutor.documento, tutor.celular, tutor.email, tutor.domicilio, tutor.id
+        aud = Auditoria(Tutor.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, tutor.id, Tutor.col_id, tutor)
         update(db, val, Tutor.nombre_tabla, Tutor.cols, Tutor.col_id)
 
     def delete(db, id):
+        aud = Auditoria(Tutor.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Tutor.col_id)
         delete_logic(db, Tutor.nombre_tabla, Tutor.col_id, id) #Tutores
 
 class Gravedad():
@@ -296,13 +301,17 @@ class Historial_ingreso():
 
     def update(db, historial_ingreso, vis_det):
         val = historial_ingreso.fecha, historial_ingreso.descripcion, historial_ingreso.id
-        Hist_ingr_det.delete(db, historial_ingreso.id)
         if vis_det:
+            Hist_ingr_det.delete(db, historial_ingreso.id, "modificación")
             Hist_ingr_det.nuevo(db, vis_det)
+        aud = Auditoria(Historial_ingreso.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, historial_ingreso.id, Historial_ingreso.col_id, historial_ingreso)
         update(db, val, Historial_ingreso.nombre_tabla, Historial_ingreso.cols, Historial_ingreso.col_id)
     
     def delete(db, id):
-        Hist_ingr_det.delete(db, id)
+        Hist_ingr_det.delete(db, id, "borrado")
+        aud = Auditoria(Historial_ingreso.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Historial_ingreso.col_id)
         delete_fis(db, Historial_ingreso.nombre_tabla, Historial_ingreso.col_id, id) #Historial de Ingresos
 
 class Hist_ingr_det():
@@ -327,10 +336,12 @@ class Hist_ingr_det():
             val = last_insert[0], row
             nuevo(db, val, Hist_ingr_det.nombre_tabla, Hist_ingr_det.cols)
     
-    def delete(db, id):
+    def delete(db, id, tipo_elim):
         datos_sec = ver_child(db, id, Hist_ingr_det.nombre_tabla, Hist_ingr_det.col_id)
         for row in datos_sec:
             val = id, row
+            aud = Auditoria(Hist_ingr_det.nombre_tabla,tipo_elim)
+            Auditoria.nuevo_del_sub_tabla(db, aud, val, Hist_ingr_det.col_id)
             delete_fis_child(db, Hist_ingr_det.nombre_tabla, Hist_ingr_det.col_id, val) #Historial-Visitantes
 
 class Indicadores():
@@ -372,7 +383,7 @@ class Profesores():
     orden = "nombres"
     col_id = "idprofesor"
     cols = "nombres, apellidos, documento, telefono, celular, email, domicilio"
-    elim_log = 0
+    elim_log = 1
     
     tabla_col_def = ["ID", "Nombres", "Materias que enseña"]
 
@@ -387,15 +398,15 @@ class Profesores():
         self.domicilio = domicilio
     
     def get_tabla(db):
-        sql ="""SELECT 
-                profesores.idprofesor, 
-                concat(nombres, ' ', apellidos) as Nombres, 
-	            GROUP_CONCAT(DISTINCT CONCAT(" ", det.nombre)) AS det
-            FROM materias_de_grado, profesores
-            INNER JOIN 
-            (SELECT materias_de_grado.idprofesor,materias.idmateria, nombre from materias, materias_de_grado where materias.idmateria = materias_de_grado.idmateria) as det
-            ON det.idprofesor=profesores.idprofesor
-            GROUP BY profesores.idprofesor"""
+        sql ="""SELECT profesores.idprofesor, 
+                    concat(nombres, ' ', apellidos) as Nombres, 
+	                GROUP_CONCAT(DISTINCT CONCAT(" ", det.nombre)) AS det
+                    FROM materias_de_grado, profesores
+                INNER JOIN 
+                    (SELECT materias_de_grado.idprofesor,materias.idmateria, nombre from materias, materias_de_grado where materias.idmateria = materias_de_grado.idmateria) as det
+                ON det.idprofesor=profesores.idprofesor
+                WHERE profesores.estado != 0
+                GROUP BY profesores.idprofesor"""
         response = get_tabla_custom_req(db, sql, Profesores.nombre_tabla, Profesores.tabla_col_def)
         return response
 
@@ -419,6 +430,8 @@ class Profesores():
 
     def update(db, profesor, det, det_id, det_2, det_2_new):
         val = profesor.nombres, profesor.apellidos, profesor.documento, profesor.telefono, profesor.celular, profesor.email, profesor.domicilio, profesor.idprofesor
+        aud = Auditoria(Profesores.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, profesor.idprofesor, Profesores.col_id, profesor)
         update(db, val, Profesores.nombre_tabla, Profesores.cols, Profesores.col_id)
         
         if det_id:
@@ -437,8 +450,10 @@ class Profesores():
 
     
     def delete(db, id):
-        Legajo.delete(db, id)
-        delete_fis(db, Profesores.nombre_tabla, Profesores.col_id, id) #Profesores
+        #Legajo.delete(db, id)
+        aud = Auditoria(Profesores.nombre_tabla,"borrado_logico")
+        Auditoria.nuevo_del(db, aud, id, Profesores.col_id)
+        delete_logic(db, Profesores.nombre_tabla, Profesores.col_id, id) #Profesores
 
 class Legajo():
     nombre_tabla = "legajo"
@@ -465,7 +480,7 @@ class Legajo():
 
     def get_to_descargar(db,id):
         datos_sec = ver(db, id, Legajo.nombre_tabla, Legajo.col_id, Legajo.elim_log)
-        return datos_sec
+        return datos_sec[1]
 
     def nuevo_multi(db, leg):
         last_insert = get_last_insert(db, Profesores.nombre_tabla, Profesores.col_id)
@@ -500,6 +515,8 @@ class Prof_materias():
 
     cols_def = f" {cols}, {col_id[0]}, {col_id[1]}, {col_id[2]}"
 
+    cols_def_raw = "idgrado, idmateria, idprofesor, CONCAT(grados.grado, secciones.nombre), CONCAT(profesores.nombres,profesores.apellidos), materias.nombre"
+
     def __init__(self, idgrado, idmateria, id_prof, estado):
         self.idgrado = idgrado
         self.idmateria = idmateria
@@ -513,6 +530,27 @@ class Prof_materias():
     def ver_not(db, id, id_det):
         datos_sec = ver_sub_tabla_where_not(db, id, Profesores.col_id, id_det, Prof_materias.col_id, Prof_materias.nombre_tabla)
         return datos_sec
+
+    def ver_raw(db):
+        sql = """SELECT DISTINCT grados.idgrado, profesores.idprofesor, CONCAT(grados.grado, "° - ", secciones.nombre), CONCAT(profesores.nombres," ",profesores.apellidos)
+                FROM materias_de_grado, secciones, grados, materias, profesores 
+                WHERE materias_de_grado.estado = 1 AND 
+                materias_de_grado.idgrado=grados.idgrado AND
+                materias_de_grado.idmateria=materias.idmateria AND
+                materias_de_grado.idprofesor=profesores.idprofesor AND
+                grados.idseccion=secciones.idseccion;"""
+        grado_prof = get_tabla_custom_req_raw(db,sql)
+
+        sql = """SELECT grados.idgrado, profesores.idprofesor, materias.idmateria, materias.nombre 
+                FROM materias_de_grado, secciones, grados, materias, profesores 
+                WHERE materias_de_grado.estado = 1 AND 
+                materias_de_grado.idgrado=grados.idgrado AND
+                materias_de_grado.idmateria=materias.idmateria AND
+                materias_de_grado.idprofesor=profesores.idprofesor AND
+                grados.idseccion=secciones.idseccion;"""
+        grado_prof_materia = get_tabla_custom_req_raw(db,sql)
+
+        return grado_prof, grado_prof_materia
 
     def update(db, prof_mat, id_prof, prof_mat_new):
         Prof_materias.delete(db, id_prof)
@@ -593,9 +631,13 @@ class Grados():
 
     def update(db, grado):
         val = grado.grado, grado.idseccion, grado.idnivel_escolar, grado.id
+        aud = Auditoria(Grados.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, grado.id, Grados.col_id, grado)
         update(db, val, Grados.nombre_tabla, Grados.cols, Grados.col_id)
 
     def delete(db, id):
+        aud = Auditoria(Grados.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Grados.col_id)
         delete_logic(db, Grados.nombre_tabla, Grados.col_id, id) #Grados
 
 class Horario():
@@ -631,7 +673,7 @@ class Horario():
                         CONCAT(TIME_FORMAT(horario_recreo_manhana, '%H:%i'), ' - ', TIME_FORMAT(ADDTIME(horario_recreo_manhana,'00:20:00'), '%H:%i')),
                         'Recreo' FROM nivel_escolar natural join grados where grados.idgrado = 1) 
                         ORDER BY hora;"""
-                a = get_tabla_custom_req_raw(db, sql, Horario.nombre_tabla)
+                a = get_tabla_custom_req_raw(db, sql)
                 data.append(a)
             response.append(data)
         return response
@@ -639,6 +681,13 @@ class Horario():
     def nuevo(db, grado):
         val = grado.grado, grado.idseccion, grado.idnivel_escolar
         nuevo(db, val, Grados.nombre_tabla, Grados.cols)
+
+    def get_tabla_raw(db):
+        sql = """SELECT horario.idhorario, idgrado, idprofesor, idmateria, horario.dia, CONCAT(horario.inicio, " - ", horario.fin)
+                FROM horario
+                WHERE horario.estado = 1"""
+        horario_dias_horas = get_tabla_custom_req_raw(db,sql)
+        return horario_dias_horas
 
     def ver(db, id):
         permisos = obtener_permisos(db, Grados.nombre_tabla)
@@ -765,10 +814,12 @@ class Relacion():
                 val = row[0], id_prin
                 nuevo(db, val, Relacion.nombre_tabla, Relacion.cols)            
     
-    def delete(db, id):
+    def delete(db, id, tipo_elim):
         datos_sec = ver_sub_tabla(db, id, Relacion.nombre_tabla, Alumnos.col_id)
         for row in datos_sec:
             val = row[0], row[1]
+            aud = Auditoria(Relacion.nombre_tabla,tipo_elim)
+            Auditoria.nuevo_del_sub_tabla(db, aud, val, Relacion.col_id)
             delete_fis_child(db, Relacion.nombre_tabla, Relacion.col_id, val) #Tutores-Alumnos
 
 class Alumnos():
@@ -779,7 +830,6 @@ class Alumnos():
     elim_log = 1
     
     cols_def = f"{col_id}, concat(nombres, ' ', apellidos) as Nombre, concat({Grados.nombre_tabla}.grado,' - ', {Secciones.nombre_tabla}.nombre) as Grado"
-    "grados,secciones"
     tabla_col_def = ["ID", "Nombre", "Grado"]
 
     def __init__(self, idalumno, nombres, apellidos, documento, celular, email, idgrado, fecha_nac):
@@ -810,12 +860,20 @@ class Alumnos():
         datos_det_2 = Ficha.ver_alum(db, id)
         return datos, permisos, datos_det, datos_det_2
 
+    def get_tabla_raw(db):
+        cols_def = f"idalumno, concat(nombres, ' ', apellidos) as Nombre, idgrado, concat({Grados.nombre_tabla}.grado,' - ', {Secciones.nombre_tabla}.nombre) as Grado, 0"
+        tablas_sec = Grados.nombre_tabla, Secciones.nombre_tabla
+        response = get_tabla_compleja_raw(db, cols_def, Alumnos.nombre_tabla, tablas_sec, Alumnos.orden, Alumnos.elim_log)
+        return response
+
     def update(db, alumno, det_1, det_2, det_2_sec):
         val = alumno.nombres, alumno.apellidos, alumno.documento, alumno.celular, alumno.email, alumno.idgrado, alumno.fecha_nac, alumno.idalumno
+        aud = Auditoria(Alumnos.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, alumno.idalumno, Alumnos.col_id, alumno)
         update(db, val, Alumnos.nombre_tabla, Alumnos.cols, Alumnos.col_id)
         
         if det_1:
-            Relacion.delete(db, alumno.idalumno)
+            Relacion.delete(db, alumno.idalumno,"modificación")
             Relacion.upd_multi(db, det_1, alumno.idalumno)
         
         Ficha.nuevo(db, det_2, det_2_sec, alumno.idalumno)
@@ -823,6 +881,8 @@ class Alumnos():
     def delete(db, id):
         #Relacion.delete(db, id)
         #Ficha.delete_alumn(db, id)
+        aud = Auditoria(Alumnos.nombre_tabla,"borrado_logico")
+        Auditoria.nuevo_del(db, aud, id, Alumnos.col_id)
         delete_logic(db, Alumnos.nombre_tabla, Alumnos.col_id, id) #Alumnos
 
 class Historial_obs():
@@ -843,7 +903,7 @@ class Historial_obs():
         sql ="""SELECT 
                     historial_observaciones.idhistorial_observaciones,
                     CAST(historial_observaciones.fecha AS char), 
-	                GROUP_CONCAT(CONCAT(" ", part.nombres, " ", part.apellidos)) AS alumnos
+	                GROUP_CONCAT(DISTINCT CONCAT(" ", part.nombres, " ", part.apellidos)) AS alumnos
                 FROM participantes, historial_observaciones
                 INNER JOIN 
                 (SELECT idhistorial_observaciones, participantes.idalumno, alumnos.nombres, alumnos.apellidos 
@@ -866,13 +926,17 @@ class Historial_obs():
 
     def update(db, obs, det):
         val = obs.fecha, obs.descripcion, obs.id
-        Hist_obs_det.delete(db, obs.id)
+        Hist_obs_det.delete(db, obs.id, "modificación")
         if det:
             Hist_obs_det.upd_multi(db, det, obs.id)
+        aud = Auditoria(Historial_obs.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, obs.id, Historial_obs.col_id, obs)
         update(db, val, Historial_obs.nombre_tabla, Historial_obs.cols, Historial_obs.col_id)
     
     def delete(db, id):
-        Hist_obs_det.delete(db, id)
+        aud = Auditoria(Historial_obs.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Historial_obs.col_id)
+        Hist_obs_det.delete(db, id, "borrado")
         delete_fis(db, Historial_obs.nombre_tabla, Historial_obs.col_id, id) #Historial de observaciones
 
 class Hist_obs_det():
@@ -908,10 +972,12 @@ class Hist_obs_det():
                 val = id_prin, row[0], row[1], row[2]
                 nuevo(db, val, Hist_obs_det.nombre_tabla, Hist_obs_det.cols)
     
-    def delete(db, id):
+    def delete(db, id, tipo_elim):
         datos_sec = ver_child(db, id, Hist_obs_det.nombre_tabla, Hist_obs_det.col_id)
         for row in datos_sec:
             val = id, row
+            aud = Auditoria(Hist_obs_det.nombre_tabla,tipo_elim)
+            Auditoria.nuevo_del_sub_tabla(db, aud, val, Hist_obs_det.col_id)
             delete_fis_child(db, Hist_obs_det.nombre_tabla, Hist_obs_det.col_id, val) #Observaciones-Alumnos
 
 class Ficha():
@@ -958,26 +1024,33 @@ class Ficha():
         val = ficha.fecha, ficha.aptitud, ficha.iddoctor, id_prin
         if ficha.fecha and ficha.aptitud and ficha.iddoctor:
             nuevo(db, val, Ficha.nombre_tabla, Ficha.cols)
-            if list(det)[0][0]:
+            print(det)
+            if list(det):
                 Obs_med.nuevo_multi(db, det)
 
     def update(db, ficha, det_1):
         val = ficha.fecha, ficha.aptitud, ficha.iddoctor, ficha.idalumno, ficha.idficha_medica
+        aud = Auditoria(Ficha.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, ficha.idficha_medica, Ficha.col_id, ficha)
         update(db, val, Ficha.nombre_tabla, Ficha.cols, Ficha.col_id)
         
         if det_1:
-            Obs_med.delete(db, ficha.idficha_medica)
+            Obs_med.delete(db, ficha.idficha_medica, "modificación")
             Obs_med.upd_multi(db, det_1, ficha.idficha_medica)
     
     def delete(db, id):
-        Obs_med.delete(db, id)
+        aud = Auditoria(Ficha.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Ficha.col_id)
+        Obs_med.delete(db, id, "borrado")
         delete_fis(db, Ficha.nombre_tabla, Ficha.col_id, id)
 
     def delete_alumn(db, id_alumn):
         ficha_medica = ver_sub_tabla(db, id_alumn, Ficha.nombre_tabla, Alumnos.col_id)
         if ficha_medica:
             for row in ficha_medica:
-                Obs_med.delete(db, row[0])
+                aud = Auditoria(Ficha.nombre_tabla,"borrado")
+                Auditoria.nuevo_del(db, aud, row[0], Ficha.col_id)
+                Obs_med.delete(db, row[0], "borrado")
                 delete_fis(db, Ficha.nombre_tabla, Ficha.col_id, row[0], 1) #Ficha Médica
 
 class Obs_med():
@@ -1012,10 +1085,12 @@ class Obs_med():
                 val = row[0], id_prin, row[1]
                 nuevo(db, val, Obs_med.nombre_tabla, Obs_med.cols)
 
-    def delete(db, id):
+    def delete(db, id, tipo_elim):
         datos_sec = ver_sub_tabla(db, id, Obs_med.nombre_tabla, Ficha.col_id)
         for row in datos_sec:
             val = row[0], row[1]
+            aud = Auditoria(Obs_med.nombre_tabla,tipo_elim)
+            Auditoria.nuevo_del_sub_tabla(db, aud, val, Obs_med.col_id)
             delete_fis_child(db, Obs_med.nombre_tabla, Obs_med.col_id, val) #Afecciones-Ficha médica
 
 class Noticias():
@@ -1057,10 +1132,14 @@ class Noticias():
 
     def update(db, noticia):
         val = noticia.fecha, noticia.titulo, noticia.encabezado, noticia.descripcion, noticia.autor, noticia.user_id_user, noticia.idnoticias
+        aud = Auditoria(Noticias.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, noticia.idnoticias, Noticias.col_id, noticia)
         update(db, val, Noticias.nombre_tabla, Noticias.cols, Noticias.col_id)
 
     def delete(db, id):
-        delete_fis(db, Noticias.nombre_tabla, Noticias.col_id, id) #Noticia
+        aud = Auditoria(Noticias.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Noticias.col_id)
+        delete_fis(db, Noticias.nombre_tabla, Noticias.col_id, id) #Noticias
 
 class User_local():
     nombre_tabla = "users"
@@ -1117,52 +1196,14 @@ class Personal():
 
     def update(db, personal):
         val = personal.nombre, personal.apellido, personal.documento, personal.celular, personal.email, personal.id
+        aud = Auditoria(Personal.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, personal.id, Personal.col_id, personal)
         update(db, val, Personal.nombre_tabla, Personal.cols, Personal.col_id)
 
     def delete(db, id):
+        aud = Auditoria(Personal.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Personal.col_id)
         delete_logic(db, Personal.nombre_tabla, Personal.col_id, id) #Personal
-
-class Roles():
-    nombre_tabla = "tipo_user"
-    orden = "nombre"
-    col_id = "idtipo_user"
-    cols = "nombre, descripción"
-    elim_log = 1
-
-    cols_def = col_id + ", grado," + Secciones.nombre_tabla + ".nombre"
-    tabla_col_def = ["ID", "Grado", "Sección"]
-
-    def __init__(self, idgrado, grado, idseccion, idnivel_escolar):
-        self.id = idgrado
-        self.grado = grado
-        self.idseccion = idseccion
-        self.idnivel_escolar = idnivel_escolar
-
-    def get_tabla(db):
-        tablas_sec = Secciones.nombre_tabla
-        response = get_tabla_compleja(db, Grados.cols_def, Grados.tabla_col_def, Grados.nombre_tabla, tablas_sec, Grados.orden, Grados.elim_log)
-        return response
-
-    def get_tabla_raw(db):
-        tablas_sec = Secciones.nombre_tabla
-        response = get_tabla_compleja_raw(db, Grados.cols_def, Grados.nombre_tabla, tablas_sec, Grados.elim_log)
-        return response
-    
-    def nuevo(db, grado):
-        val = grado.grado, grado.idseccion, grado.idnivel_escolar
-        nuevo(db, val, Grados.nombre_tabla, Grados.cols)
-
-    def ver(db, id):
-        permisos = obtener_permisos(db, Grados.nombre_tabla)
-        datos = ver(db, id, Grados.nombre_tabla, Grados.col_id, Grados.elim_log)
-        return datos, permisos
-
-    def update(db, grado):
-        val = grado.grado, grado.idseccion, grado.idnivel_escolar, grado.id
-        update(db, val, Grados.nombre_tabla, Grados.cols, Grados.col_id)
-
-    def delete(db, id):
-        delete_logic(db, Grados.nombre_tabla, Grados.col_id, id) #Grados
 
 class Rol():
     nombre_tabla = "tipo_user"
@@ -1225,7 +1266,7 @@ class Permisos():
         tablas_sec = "tablas"
         sql = """(SELECT 0,table_name,0,0,0,0 FROM information_schema.tables 
                 WHERE table_schema = 'csb_prov' and table_name not in (select nombre from tablas));"""
-        nuevas_tab = get_tabla_custom_req_raw(db, sql, "tablas")
+        nuevas_tab = get_tabla_custom_req_raw(db, sql)
         for i in nuevas_tab:
             nuevo(db,i[1],"tablas","nombre")
         if id_tipo_usr:
@@ -1234,17 +1275,13 @@ class Permisos():
             filtro = "idtipo_user='0'"
         sql = f"""(SELECT idtabla,nombre,0,0,0,0 FROM tablas 
                 WHERE idtabla not in (select idtabla from permisos where idtipo_user='{id_tipo_usr}'));"""
-        tablas_sin_per = get_tabla_custom_req_raw(db, sql, "tablas")
+        tablas_sin_per = get_tabla_custom_req_raw(db, sql)
         perm_act = get_tabla_compleja_raw(db, "idtabla, tablas.nombre, crear, leer, actualizar, borrar ", Permisos.nombre_tabla, tablas_sec, Permisos.elim_log, f"{filtro}")
         if id_tipo_usr:
             response = tablas_sin_per + perm_act
         else:
             response = tablas_sin_per
         return response
-
-    #def ver_not(db, id, id_det):
-    #    datos_sec = ver_sub_tabla_where_not(db, id, Tutor.col_id, id_det, Permisos.col_id, Relacion.nombre_tabla,1)
-    #    return datos_sec
 
     def nuevo_multi(db, datos_sec):
         last_insert = get_last_insert(db, Rol.nombre_tabla, Rol.col_id)
@@ -1263,4 +1300,224 @@ class Permisos():
         for row in datos_sec:
             if row[0] !=0:
                 val = row[0], row[1]
-                delete_fis_child(db, Permisos.nombre_tabla, Permisos.col_id, val) #Permisos
+                delete_fis_child(db, Permisos.nombre_tabla, Permisos.col_id, val) #Roles-Permisos
+
+class Auditoria():
+    nombre_tabla = "auditoria"
+    orden = "tabla"
+    col_id = "idauditoria"
+    cols = "id_user, fecha, tabla, tipo_cambio, datos_anteriores"
+    elim_log = 0
+
+    cols_def = col_id + ", CAST(fecha AS char), tabla, tipo_cambio"
+    tabla_col_def = ["ID", "Fecha", "Tabla", "Tipo"]
+
+    def __init__(self, tabla, tipo_cambio):
+        self.id_user = session["_user_id"]
+        self.fecha = datetime.now()
+        self.tabla = tabla
+        self.tipo_cambio = tipo_cambio
+
+    def ver(db, id):
+        permisos = "0,0,0,0"
+        datos = ver(db, id, Auditoria.nombre_tabla, Auditoria.col_id, Auditoria.elim_log)
+        data_det = eval(datos[5])
+        return datos, data_det, permisos
+
+    def get_tabla(db):
+        data = get_tabla(db, Auditoria.cols_def, Auditoria.tabla_col_def, Auditoria.nombre_tabla, Auditoria.orden, Auditoria.elim_log)
+        return data
+
+    def nuevo_upd(db, aud, id_dato, id_col, data_new):
+        datos_anteriores = {}
+        sql = f"""SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = 'csb_prov' AND TABLE_NAME = '{aud.tabla}' and COLUMN_NAME not in ('estado', 'anexo');"""
+        cols = get_tabla_custom_req_raw(db, sql)
+        datos_old = ver(db, id_dato, aud.tabla, id_col, 0)
+
+        for i in range(0,len(cols)):
+            if datos_old[i]:
+                datos_anteriores[f"{cols[i][0]}"] = str(datos_old[i])
+        
+        if list(datos_anteriores.values()) == list(data_new.__dict__.values()):
+            print("igual")
+        else:
+            val = aud.id_user, aud.fecha, aud.tabla, aud.tipo_cambio, str(datos_anteriores)
+            nuevo(db, val, Auditoria.nombre_tabla, Auditoria.cols) 
+    
+    def nuevo_del(db, aud, id_dato, id_col):
+        datos_anteriores = {}
+        sql = f"""SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = 'csb_prov' AND TABLE_NAME = '{aud.tabla}' and COLUMN_NAME not in ('estado', 'anexo');"""
+        cols = get_tabla_custom_req_raw(db, sql)
+        datos_old = ver(db, id_dato, aud.tabla, id_col, 0)
+
+        for i in range(0,len(cols)):
+            datos_anteriores[f"{cols[i][0]}"] = str(datos_old[i])
+        
+        val = aud.id_user, aud.fecha, aud.tabla, aud.tipo_cambio, str(datos_anteriores)
+        nuevo(db, val, Auditoria.nombre_tabla, Auditoria.cols)    
+    
+    def nuevo_del_sub_tabla(db, aud, ids_dato, id_col):
+        datos_anteriores = {}
+        sql = f"""SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = 'csb_prov' AND TABLE_NAME = '{aud.tabla}' and COLUMN_NAME not in ('estado');"""
+        cols = get_tabla_custom_req_raw(db, sql)
+
+        valores = ''
+        cantidad_cols = len(id_col)
+        if type(ids_dato) !=  int:
+            for i in range(0,cantidad_cols):
+                valores = valores + str(id_col[i]) + " = " + str(ids_dato[i]) + " AND "
+            valores = valores[0:len(valores)-5]
+        else:
+            valores = f"{id_col} = {ids_dato}"
+
+        sql = f"SELECT * FROM {aud.tabla} WHERE {valores};"
+        datos_old = get_tabla_custom_req_raw(db, sql)
+        print(sql)
+        for i in range(0,len(cols)):
+
+            datos_anteriores[f"{cols[i][0]}"] = str(datos_old[0][i])
+
+        val = aud.id_user, aud.fecha, aud.tabla, aud.tipo_cambio, str(datos_anteriores)
+        nuevo(db, val, Auditoria.nombre_tabla, Auditoria.cols) #Auditoria
+        
+class Asistencia():
+    nombre_tabla = "asistencias"
+    orden = "idfecha"
+    col_id = "idasistencia"
+    cols = "idfecha, idhorario"
+    elim_log = 0
+    
+    cols_def = col_id + ", CAST(idfecha AS char), CONCAT(grados.grado, secciones.nombre), CONCAT(profesores.nombres,profesores.apellidos), materias.nombre"
+    tabla_col_def = ["ID", "Fecha", "Grado", "Profesor", "Materia"]
+
+    def __init__(self, idpres, fecha, horario):
+        self.idpres = idpres
+        self.fecha = fecha
+        self.horario = horario
+    
+    def get_tabla(db):
+        sql ="""SELECT  idasistencia, CAST(idfecha AS char), CONCAT(grados.grado, " - ", secciones.nombre), CONCAT(profesores.nombres," ",profesores.apellidos), materias.nombre 
+                FROM asistencias, horario, secciones, grados, materias, profesores 
+                WHERE  asistencias.idhorario = horario.idhorario AND
+                horario.idgrado=grados.idgrado AND
+                horario.idmateria=materias.idmateria AND
+                horario.idprofesor=profesores.idprofesor AND
+                grados.idseccion=secciones.idseccion;"""
+        response = get_tabla_custom_req(db, sql, Asistencia.nombre_tabla, Asistencia.tabla_col_def)
+        return response
+
+    def nuevo(db, pres, det):
+        val = pres.fecha, pres.horario
+        nuevo(db, val, Asistencia.nombre_tabla, Asistencia.cols)
+        Presencia.nuevo_multi(db, det)
+
+    def ver(db, id_asis):
+        permisos = obtener_permisos(db, Asistencia.nombre_tabla)
+        sql = f"""SELECT  idasistencia, idfecha, idgrado, idprofesor, idmateria
+                FROM asistencias, {Horario.nombre_tabla}
+                WHERE  asistencias.idhorario = horario.idhorario AND
+                asistencias.idasistencia={id_asis};"""
+        datos = get_tabla_custom_req_raw(db, sql)
+        datos_sec = Presencia.ver(db, id_asis)
+        return datos[0], datos_sec, permisos
+    
+    def delete(db, id_asis):
+        aud = Auditoria(Asistencia.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id_asis, Asistencia.col_id)
+        Presencia.delete(db, id_asis,"borrado")
+        delete_fis(db, Asistencia.nombre_tabla, Asistencia.col_id, id_asis) #Asistencias
+
+class Presencia():
+    nombre_tabla = "presencias"
+    orden = "idasistencia"
+    col_id = "idasistencia", "idalumno"
+    cols = "idasistencia, idalumno, asistencia"
+    elim_log = 0
+    cols_def = "idalumno, nombres, apellidos, asistencia"
+
+    def ver(db, id):
+        sql = f"""SELECT presencias.idalumno, CONCAT(nombres, " ", apellidos), idgrado,0,0,asistencia
+                FROM presencias, alumnos
+                WHERE presencias.idalumno=alumnos.idalumno and idasistencia={id};"""
+        data = get_tabla_custom_req_raw(db, sql)
+        return data
+
+    def ver_not(db, id, id_det):
+        datos_sec = ver_sub_tabla_where_not(db, id, Obs_med.col_id, id_det, Obs_med.col_id, Obs_med.nombre_tabla)
+        return datos_sec
+
+    def nuevo_multi(db, datos_sec):
+        last_insert = get_last_insert(db, Asistencia.nombre_tabla, Asistencia.col_id)
+        for row in datos_sec:
+            val = last_insert[0], row[0], row[1]
+            nuevo(db, val, Presencia.nombre_tabla, Presencia.cols)
+    
+
+    def delete(db, id, tipo_elim):
+        datos_sec = ver_sub_tabla(db, id, Presencia.nombre_tabla, Asistencia.col_id)
+        for row in datos_sec:
+            val = row[1], row[0]
+            aud = Auditoria(Presencia.nombre_tabla,tipo_elim)
+            print(val)
+            print(Presencia.col_id)
+            Auditoria.nuevo_del_sub_tabla(db, aud, val, Presencia.col_id)
+            delete_fis_child(db, Presencia.nombre_tabla, Presencia.col_id, val) #Asistencias-Alumnos
+
+class Plan_diario():
+    nombre_tabla = "plan_diario"
+    orden = "fecha, idgrado, idprofesor, idmateria"
+    col_id = "idplan_diario"
+    cols = "idgrado, idmateria, idprofesor, nombre, fecha, descripcion, anexo"
+    elim_log = 0
+
+    cols_def = col_id + ", CAST(idfecha AS char), CONCAT(grados.grado, secciones.nombre), CONCAT(profesores.nombres,profesores.apellidos), materias.nombre"
+    tabla_col_def = ["ID", "Fecha", "Grado", "Profesor", "Materia"]
+
+    def __init__(self, idplan_diario, idgrado, idmateria, idprofesor, nombre, fecha, descripcion):
+        self.idplan_diario = idplan_diario
+        self.idgrado = idgrado
+        self.idmateria = idmateria
+        self.idprofesor = idprofesor
+        self.nombre = nombre
+        self.fecha = fecha
+        self.descripcion = descripcion
+    
+    def get_tabla(db):
+        sql ="""SELECT  idplan_diario, CAST(fecha AS char), CONCAT(grados.grado, " - ", secciones.nombre), CONCAT(profesores.nombres," ",profesores.apellidos), materias.nombre 
+                FROM plan_diario, secciones, grados, materias, profesores 
+                WHERE plan_diario.idgrado=grados.idgrado AND
+                plan_diario.idmateria=materias.idmateria AND
+                plan_diario.idprofesor=profesores.idprofesor AND
+                grados.idseccion=secciones.idseccion;"""
+        response = get_tabla_custom_req(db, sql, Plan_diario.nombre_tabla, Plan_diario.tabla_col_def)
+        return response
+
+    def ver(db, plan_id):
+        permisos = obtener_permisos(db, Plan_diario.nombre_tabla)
+        datos = ver(db,plan_id,Plan_diario.nombre_tabla,Plan_diario.col_id,0)
+        return datos, permisos
+
+    def get_to_descargar(db,plan_id):
+        datos = ver(db,plan_id,Plan_diario.nombre_tabla,Plan_diario.col_id,0)
+        return datos[7]
+
+    def update(db, plan, anexo):
+        val = plan.idgrado, plan.idmateria, plan.idprofesor, plan.nombre, plan.fecha, plan.descripcion, anexo, plan.idplan_diario
+        aud = Auditoria(Plan_diario.nombre_tabla,"modificación")
+        Auditoria.nuevo_upd(db, aud, plan.idplan_diario, Plan_diario.col_id, plan)
+        update(db, val, Plan_diario.nombre_tabla, Plan_diario.cols, Plan_diario.col_id)
+
+    def nuevo(db, plan, anexo):
+        val = plan.idgrado, plan.idmateria, plan.idprofesor, plan.nombre, plan.fecha, plan.descripcion, anexo
+        nuevo(db, val, Plan_diario.nombre_tabla, Plan_diario.cols)  
+
+    def delete(db, id):
+        aud = Auditoria(Plan_diario.nombre_tabla,"borrado")
+        Auditoria.nuevo_del(db, aud, id, Plan_diario.col_id)
+        delete_fis(db, Plan_diario.nombre_tabla, Plan_diario.col_id, id) #Plan Diario
