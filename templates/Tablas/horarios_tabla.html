@@ -1,0 +1,70 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}} {% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row" style="padding:50px;">
+        <div class="col-md-2">
+            <select class="form-select grados" id="grados_filtro">
+                <option selected value=0>Seleccionar Grado</option>
+                {%for row in grados%}
+                <option value={{row[0]}}>{{row[1]}}° - {{row[2]}}</option>
+                {%endfor%}
+            </select>
+        </div>
+        {% for i, row in grados | zip(data) %}
+        <div id="grado_{{i[0]}}" name="tabla horario">
+            <p class="display-4 fw-normal text-center">{{i[1]}}° - {{i[2]}}</p>
+            <table class="table table-bordered border-primary" id="tabla_hor">
+                <thead>
+                    <tr>
+                        <th class="text-center">Dia</th>
+                        <th class="text-center">Hora</th>
+                        <th class="text-center">Docente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%for dia in row%}
+                    <tr>
+                        {%if loop.index == 1%}
+                        <td rowspan={{dia|length+1}} class="align-middle">Lunes</td>
+                        {%elif loop.index == 2%}
+                        <td rowspan={{dia|length+1}} class="align-middle">Martes</td>
+                        {%elif loop.index == 3%}
+                        <td rowspan={{dia|length+1}} class="align-middle">Miércoles</td>
+                        {%elif loop.index == 4%}
+                        <td rowspan={{dia|length+1}} class="align-middle">Jueves</td>
+                        {%elif loop.index == 5%}
+                        <td rowspan={{dia|length+1}} class="align-middle">Viernes</td>
+                        {%endif%}
+                    </tr>
+                    {%for hora in dia%}
+                    <tr>
+                        <td>{{hora[3]}}</td>
+                        <td>{{hora[4]}}</td>
+                    </tr>
+                    {%endfor%}
+                    {%endfor%}
+                </tbody>
+            </table>
+        </div>
+        {%endfor%}
+    </div>
+</div>
+<script>
+    $(".grados").change(function () {
+        let hor_grad = document.getElementsByName("tabla horario");
+        let selection = parseInt(document.getElementById("grados_filtro").value);
+         for (let i = 0; i < hor_grad.length; i++) {
+             if (selection != 0) {
+                 hor_grad[i].hidden = true;
+             }
+             else {
+                 hor_grad[i].hidden = false;
+             }
+         }
+        if (selection != 0) {
+            hor_grad[selection - 1].hidden = false;
+        }
+    });
+</script>
+{% endblock %}

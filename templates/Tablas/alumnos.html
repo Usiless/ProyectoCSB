@@ -1,0 +1,324 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+
+<div class="container">
+    <div class="modal" id="myModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Seleccionar</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <table id="tabla" class="hover display" style="width:100%"></table>
+                    </div>
+                    <a id="aux" value="0" hidden></a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onClick=carga_datos_en_detalle() data-bs-dismiss="modal">Seleccionar</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <form method="post" id="myForm" onSubmit="return confirm('Confirmar cambios?');" enctype="multipart/form-data">
+        <ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Datos Personales</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="fichas_med-tab" data-bs-toggle="tab" data-bs-target="#fichas_med" type="button" role="tab" aria-controls="fichas_med" aria-selected="false">Fichas Médicas</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active mt-3" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <h2 class="text-center">Datos Personales</h2>
+                <div class="input-group">
+                    <div class="mt-3 col-md-4 p-1">
+                        <label for="nombre" class="form-label">Nombres</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required autofocus value="{{data[1]}}" />
+                    </div>
+                    <div class="mt-3 col-md-4 p-1">
+                        <label for="apellido" class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" id="apellido" name="apellido" required autofocus value="{{data[2]}}" />
+                    </div>
+                    <div class="mt-3 col-md-4 p-1">
+                        <label for="documento" class="form-label">Documento</label>
+                        <input type="number" class="form-control" id="documento" name="documento" required autofocus value="{{data[3]}}" />
+                    </div>
+                    <div class="mt-3 col-md-4 p-1">
+                        <label for="celular" class="form-label">Celular</label>
+                        <input type="tel" class="form-control" id="celular" name="celular" autofocus value="{{data[4]}}" />
+                    </div>
+                    <div class="mt-3 col-md-4 p-1">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" autofocus value="{{data[5]}}" />
+                    </div>
+                    <div class="mt-3 mb-2 col-md-4 p-1">
+                        <label for="grado" class="form-label">Grado</label>
+                        <select id="grado" class="form-select" name="grado" required>
+                            <option selected value="">Seleccionar Grado</option>
+                            {%for row in data_sec_2%}
+                            {% if row[0] == data[6] %}
+                            <option value={{row[0]}} selected>{{row[1]}} - {{row[2]}}</option>
+                            {% else %}
+                            <option value={{row[0]}}>{{row[1]}} - {{row[2]}}</option>
+                            {% endif %}
+                            {%endfor%}
+                        </select>
+                    </div>
+                    <div class="mt-3 mb-2 col-md-4 p-1">
+                        <label for="fecha_nac" class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" id="fecha_nac" name="fecha_nac" autofocus value="{{data[7]}}" />
+                    </div>
+                </div>
+                <h2 class="text-center">Padres o tutores legales</h2>
+                <br />
+                <div class="col-md-12 column">
+                    <table class="table table-bordered table-hover" id="tabla_tut">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">Nombre</th>
+                                <th class="text-center">Apellido</th>
+                                <th class="text-center">Documento</th>
+                                <th class="text-center">
+                                    <a id="add_row" class="btn btn-primary col-12" onclick="nuevo_lin({{data_det | length}}, 'tabla_tut')">Añadir fila</a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%for row in data_det%}
+                            <tr id='addr_{{loop.index-1}}_tabla_tut'>
+                                <td class="text-center align-middle">{{loop.index}}</td>
+                                <td hidden><input type="text" id='id_det_tut' name="id_det_tut" class="form-control det" value="{{row[0]}}" /></td>
+                                <td><input type="text" id='nombre' class="form-control det" disabled value="{{row[1]}}" /></td>
+                                <td><input type="text" id='apellido' class="form-control det" disabled value="{{row[2]}}" /></td>
+                                <td><input type="text" id='documento' class="form-control det" disabled value="{{row[0]}}" /></td>
+                                <td class="text-center">
+                                    <a class="btn btn-primary col-6" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a>
+                                    <a class="btn btn-danger col-5" id='delete_row' onclick="delete_lin(this, tabla_tut.id)">Eliminar fila</a>
+                                </td>
+                            </tr>
+                            {%endfor%}
+                            <tr id='addr_{{data_det | length }}_tabla_tut'>
+                                <td class="text-center align-middle">{{data_det | length + 1 }}</td>
+                                <td hidden><input type="text" id='id_det_tut' name="id_det_tut" class="form-control det" /></td>
+                                <td><input type="text" id='nombre' class="form-control det" disabled /></td>
+                                <td><input type="text" id='apellido' class="form-control det" disabled /></td>
+                                <td><input type="text" id='documento' class="form-control det" disabled /></td>
+                                <td class="text-center">
+                                    <a class="btn btn-primary col-6" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a>
+                                    <a class="btn btn-danger col-5" id='delete_row' onclick="delete_lin(this, tabla_tut.id)">Eliminar fila</a>
+                                </td>
+                            </tr>
+                            <tr id='addr_{{data_det | length + 1}}_tabla_tut'>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="fichas_med" class="tab-pane fade" role="tabpanel" aria-labelledby="fichas_med-tab">
+                <ul class="nav nav-tabs mt-3" id="myTab2" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="new_fichas_med-tab" data-bs-toggle="tab" data-bs-target="#new_fichas_med" type="button" role="tab" aria-controls="new_fichas_med" aria-selected="true">Nuevo</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="all_fichas_med-tab" data-bs-toggle="tab" data-bs-target="#all_fichas" type="button" role="tab" aria-controls="all_fichas" aria-selected="false">Existentes</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent2">
+                    <div class="tab-pane fade show active mt-3" id="new_fichas_med" role="tabpanel" aria-labelledby="new_ficha-tab">
+                        <div class="input-group">
+                            <div class="mt-3 col-3">
+                                <label for="fecha" class="form-label">Fecha</label>
+                                <input type="date" class="form-control" id="fecha" name="fecha" autofocus />
+                            </div>
+                            <div class="mt-3 mb-2 col-md-4 p-1">
+                                <label for="doctor" class="form-label">Doctor</label>
+                                <select id="doctor" class="form-select" name="doctor" onchange="cambia_ref(this)">
+                                    <option selected value="">Seleccionar doctor</option>
+                                    {%for row in data_sec_3%}
+                                    <option value={{row[0]}} value_2="{{row[2]}}" nro_lin="{{loop.index}}">{{row[1]}}</option>
+                                    {%endfor%}
+                                </select>
+                            </div>
+                            <div class="mt-3 col-md-4 p-1">
+                                <label for="nro_ref" class="form-label">Nro de Registro Profesional</label>
+                                <input type="text" class="form-control det" id="nro_ref" name="nro_ref" disabled />
+                            </div>
+                            <div class="mt-3 col-md-4 p-1">
+                                <label class="form-label">Aptitud</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault1" value="A" checked>
+                                    <label class="form-check-label" for="flexRadioDefault1">Apto</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault2" value="O">
+                                    <label class="form-check-label" for="flexRadioDefault2">Apto con observaciones</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="apt" id="flexRadioDefault3" value="N">
+                                    <label class="form-check-label" for="flexRadioDefault3">No apto</label>
+                                </div>
+                            </div>
+                        </div>
+                        <h2 class="text-center">Observaciones médicas</h2>
+                        <div class="col-md-12 column">
+                            <table class="table table-bordered table-hover" id="tabla_med">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th class="text-center">Afección</th>
+                                        <th class="text-center">Recomendación</th>
+                                        <th class="text-center">
+                                            <a id="add_row" class="btn btn-primary col-12" onclick="nuevo_lin(0, 'tabla_med')">Añadir fila</a>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr id='addr_0_tabla_med'>
+                                        <td class="text-center align-middle">1</td>
+                                        <td>
+                                            <select id="affection" name="affection" class="form-select">
+                                                <option selected value="">Seleccionar Afección</option>
+                                                {%for row in data_sec_4%}
+                                                <option value={{row[0]}}>{{row[1]}}</option>
+                                                {%endfor%}
+                                            </select>
+                                        </td>
+                                        <td><input type="text" id='recomm' name='recomm' class="form-control det" /></td>
+                                        <td class="text-center">
+                                            <a class="btn btn-danger col-12" id='delete_row' onclick="delete_lin(this, tabla_med.id)">Eliminar fila</a>
+                                        </td>
+                                    </tr>
+                                    <tr id='addr_1_tabla_med'>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="myTabContent2">
+                    <div class="tab-pane fade show mt-3" id="all_fichas" role="tabpanel" aria-labelledby="all_fichas-tab">
+                        <div class="col-md-12 column">
+                            <table class="table table-bordered table-hover" id="tabla_med_upd">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th class="text-center">Fecha</th>
+                                        <th class="text-center">Aptitud</th>
+                                        <th class="text-center">Doctor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {%for row in data_det_2%}
+                                    <tr id='addr_{{loop.index-1}}tabla_med_upd'>
+                                        <td class="text-center align-middle">{{loop.index}}</td>
+                                        <td><a href="/fichas_med/{{row[0]}}">{{row[1]}}</a></td>
+                                        <td>
+                                            {% if row[2] == "A" %}
+                                            <a>Apto</a>
+                                            {%elif  row[2] == "N" %}
+                                            <a>No apto</a>
+                                            {%else%}
+                                            <a>Apto con observaciones</a>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {%for lin in data_sec_3%}
+                                            {% if lin[0] == row[3] %}
+                                            <a>{{lin[1]}} {{lin[2]}}</a>
+                                            {% endif %}
+                                            {%endfor%}
+                                        </td>
+                                    </tr>
+                                    {%endfor%}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
+    </form>
+</div>
+<script type="text/javascript" id="agrega_row" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
+<script>
+    const data_tut = {{ data_sec | tojson }};
+    var columns = [];
+    var tabla = data_tut.tabla
+    if (NoneEmpty(Object.values(data_tut.data[0]))) {
+        var datos = [];
+    }
+    else {
+        var datos = data_tut.data;
+    }
+
+    function NoneEmpty(arr) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] === "") return true;
+        }
+        return false;
+    }
+
+    $(document).ready(function () {
+        for (var i in data_tut.orden) {
+            columns.push({
+                data: data_tut.orden[i],
+                title: capitalizeFirstLetter(data_tut.orden[i])
+            });
+        }
+        $('#tabla').DataTable({
+            dom: 'Bfrtp',
+            "pageLength": 5,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json',
+            },
+            data: datos,
+            columns: columns,
+            buttons: [],
+            select: true,
+            "columnDefs": [
+                {
+                    "targets": 0,
+                    visible: false,
+                },
+            ]
+        })
+    });
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    };
+</script>
+<script>
+    function carga_datos_en_detalle() {
+        var table = $('#tabla').DataTable();
+        let dt = table.rows({ selected: true }).data()[0];
+        var dt_ord = JSON.parse(JSON.stringify(dt, data_tut.orden, 4));
+        let origen = document.getElementById("aux").value;
+        var detalle = document.getElementById(origen);
+
+        for (var f = 1; f < detalle.cells.length - 1; f++) {
+            detalle.cells[f].getElementsByTagName("*")[0].value = Object.values(dt_ord)[f - 1];
+        }
+    }
+    function setea_la_ubi_detalle(x) {
+        var table = $('#tabla').DataTable();
+        var i = $(x).closest('tr');
+        table.rows().deselect();
+        document.getElementById("aux").value = "0";
+        document.getElementById("aux").value = i[0].id;
+    }
+</script>
+<script>
+    $(document).ready(cambia_ref())
+    function cambia_ref() {
+        let med = document.getElementById("doctor");
+        let ref = med.options[med.selectedIndex].getAttribute("value_2");
+        document.getElementById("nro_ref").value = ref;
+    }
+</script>
+{% endblock %}

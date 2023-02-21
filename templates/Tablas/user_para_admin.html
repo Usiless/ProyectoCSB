@@ -1,0 +1,50 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+
+<div class="container">
+    <form method="post" id="myForm" onSubmit="return confirm('Confirmar cambios?');">
+        <div class="input-group">
+            <div class="mt-3 col-md-4 p-1">
+                <label for="username" class="form-label">Nombre de usuario</label>
+                {% if data[0] %}
+                <input type="text" class="form-control det" id="username" name="username" value="{{data[0]}}" disabled />
+                {% else %}
+                <input type="text" class="form-control" id="username" name="username" value="{{data[0]}}" />
+                {% endif %}
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label for="realname" class="form-label">Nombre real</label>
+                {% if data[1] %}
+                <input type="text" class="form-control det" id="realname" name="realname" value="{{data[1]}}" disabled />
+                {% else %}
+                <input type="text" class="form-control" id="realname" name="realname" value="{{data[1]}}" />
+                {% endif %}
+            </div>
+            <div class="mt-3 col-md-4 p-1">
+                <label for="email" class="form-label">Correo electrónico</label>
+                {% if data[1] %}
+                <input type="email" class="form-control det" id="email" name="email" value="{{data[2]}}" disabled />
+                {% else %}
+                <input type="text" class="form-control" id="email" name="email" value="{{data[2]}}" />
+                {% endif %}
+            </div>
+            <div class="mt-3 mb-2 col-md-4 p-1">
+                <label for="rol" class="form-label">Rol</label>
+                <select id="rol" class="form-select" name="rol" required>
+                    <option value="">Seleccionar Rol</option>
+                    {%for lin in data_sec%}
+                    {% if lin[1] == data[3] %}
+                    <option value={{lin[0]}} selected>{{lin[1]}}</option>
+                    {% else %}
+                    <option value={{lin[0]}}>{{lin[1]}}</option>
+                    {% endif %}
+                    {%endfor%}
+                </select>
+            </div>
+        </div>
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
+    </form>
+</div>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos['actualizar'] }}" eliminar="{{ permisos['borrar'] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
+{% endblock %}

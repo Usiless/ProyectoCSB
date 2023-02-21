@@ -1,0 +1,22 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="p-4 p-md-3 mb-4 text-white rounded"
+         style="background: url({{url_for('static', filename='img/Noticia.jpg') }}); background-size: cover">
+        <div class="col-md-6 px-0">
+            <h1 class="display-4 fst-italic">{{data[2]}}</h1>
+            <p class="lead my-3">{{data[3]}}</p>
+            <p class="blog-post-meta">Por {{data[5]}}, {{data[1]}}</p>
+        </div>
+        <button type="button" class="btn btn-outline-primary" onClick="history.back()">Atrás</button>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="card rounded col-lg-12 mx-auto">
+                <p style="white-space: pre-wrap;">{{data[4]}}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
