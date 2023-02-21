@@ -58,12 +58,6 @@
                                    class="dropdown-item">Alumnos</a>
                             </li>
                             {%endif%}
-                            {% if session['permisos']['historial_observaciones']['leer'] == 1%}
-                            <li>
-                                <a href="{{url_for('hist_obs')}}"
-                                   class="dropdown-item">Historial de Observaciones</a>
-                            </li>
-                            {%endif%}
                             {% if session['permisos']['tutores']['leer'] == 1%}
                             <li>
                                 <a href="{{url_for('tutores')}}"
@@ -84,7 +78,7 @@
                             {%endif%}
                             {% if session['permisos']['personal']['leer'] == 1%}
                             <li>
-                                <a href="#"
+                                <a href="{{url_for('personal')}}""
                                    class="dropdown-item">Personal</a>
                             </li>
                             {%endif%}
@@ -103,6 +97,24 @@
                                 <a href="{{url_for('horario')}}"
                                    class="dropdown-item">Horarios de Clase</a>
                             </li>
+                            {% if session['permisos']['historial_observaciones']['leer'] == 1%}
+                            <li>
+                                <a href="{{url_for('hist_obs')}}"
+                                   class="dropdown-item">Historial de Observaciones</a>
+                            </li>
+                            {%endif%}
+                            {% if session['permisos']['asistencias']['leer'] == 1%}
+                            <li>
+                                <a href="{{url_for('asistencia')}}"
+                                   class="dropdown-item">Asistencias</a>
+                            </li>
+                            {%endif%}
+                            {% if session['permisos']['plan_diario']['leer'] == 1%}
+                            <li>
+                                <a href="{{url_for('plan_diario')}}"
+                                   class="dropdown-item">Planes Diarios</a>
+                            </li>
+                            {%endif%}
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -212,6 +224,11 @@
                             {% if session['permisos']['tipo_user']['leer'] == 1%}
                             <li class="nav-item">
                                 <a href="{{ url_for('tipo_user') }}" class="dropdown-item">Roles</a>
+                            </li>
+                            {%endif%}
+                            {% if session['permisos']['auditoria']['leer'] == 1%}
+                            <li class="nav-item">
+                                <a href="{{ url_for('auditoria') }}" class="dropdown-item">Auditoria</a>
                             </li>
                             {%endif%}
                         </ul>

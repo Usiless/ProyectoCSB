@@ -62,7 +62,7 @@
                                 <td hidden><input type="text" id='id_det_{{row}}' name="id_det_leg" class="form-control det" value={{row}} /></td>
                                 <td><input type="file" id='legaj_{{row}}' name="legaj" class="form-control" accept="image/png, image/gif, image/jpeg" /></td>
                                 <td class="text-center">
-                                    <a class="btn btn-primary col-6" href="{{url_for('descarga_legajo', value=row)}}" target="_blank">Descargar</a>
+                                    <a class="btn btn-primary col-6" href="{{url_for('descarga_legajo', id=row)}}" target="_blank">Descargar</a>
                                     <a class="btn btn-danger col-5" id='delete_row' onclick="delete_lin(this, tabla_leg.id)">Eliminar fila</a>
                                 </td>
                             </tr>

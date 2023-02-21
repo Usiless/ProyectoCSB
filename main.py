@@ -682,7 +682,7 @@ def ver_alumnos(id):
             alumnos_tutores = request.form.getlist('id_det_tut')
 
             alumnos_ficha = Ficha(0, request.form["fecha"], request.form["apt"], request.form["doctor"])
-            ficha_det = set(zip(request.form.getlist('id_det_med'),request.form.getlist('affection'),request.form.getlist('recomm')))
+            ficha_det = set(zip(request.form.getlist('affection'),request.form.getlist('recomm')))
             Alumnos.update(db, alumno, alumnos_tutores, alumnos_ficha, ficha_det)
 
         elif request.form["btn_submit"] == "btn_delete":
@@ -743,7 +743,6 @@ def ver_ficha(id):
 
     else:
         data, permisos, data_det = Ficha.ver(db,id)
-        print(data)
         doctores = Doctores.get_tabla_raw(db)
         afecciones = Afecciones.get_tabla_raw(db)
         return render_template('/Tablas/ficha_med.html', title="Ficha Médica", data=data, permisos=permisos, 
@@ -808,7 +807,6 @@ def edit_noticias(id):
         if request.form["btn_submit"] == "btn_editar":
             data = Noticias(id, request.form["fecha"], request.form["titulo"], request.form["encabezado"], 
                             request.form["descripcion"], request.form['username'],session["_user_id"])
-            print(data.descripcion)
             Noticias.update(db, data)
         elif request.form["btn_submit"] == "btn_delete":
             Noticias.delete(db, id)
@@ -872,7 +870,7 @@ def add_personal():
     else: 
         return render_template('/Tablas/personal.html', title="Personal", data="", permisos="")
 
-#------------------MISC.---------------------#
+#------------------ROLES---------------------#
 
 @app.route('/tipo_user', methods=['GET', 'POST'])
 @login_required
@@ -910,12 +908,134 @@ def add_tipo_user():
         data, data_det, permisos = Rol.ver(db,0)
         return render_template('/Tablas/roles.html', title="Historial de Ingresos", data="", permisos="", data_det=data_det)
 
+#------------------AUDITORÍA---------------------#
+
+@app.route('/auditoria', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin'])
+def auditoria():
+    response = Auditoria.get_tabla(db)
+    response["permisos"] = "0,0,0,0"
+    return render_template('table.html', title="Auditoria", data=response)
+
+@app.route('/auditoria/<id>', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin'])
+def ver_auditoria(id):
+    data, data_det, permisos = Auditoria.ver(db,id)
+    return render_template('/Tablas/auditoria.html', title="Auditoria", data=data, data_det=data_det, permisos=permisos)
+
+#------------------ASISTENCIA---------------------#
+
+@app.route('/asistencias', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def asistencia():
+    response = Asistencia.get_tabla(db)
+    return render_template('table.html', title="Asistencia", data=response)
+
+@app.route('/asistencias/<id>', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def ver_asistencia(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_delete":
+            Asistencia.delete(db, id)
+        return redirect(url_for('asistencia'))
+    else:
+        data, data_det, permisos = Asistencia.ver(db,id)
+        data_sec = Grados.get_tabla_raw(db)
+        data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
+        data_sec_4 = Horario.get_tabla_raw(db)
+        permisos = (0,1)
+        return render_template('/Tablas/asistencias.html', title="Asistencia", data=data, 
+                               data_det=data_det, data_sec=data_sec, data_sec_2=data_sec_2, 
+                               data_sec_3=data_sec_3, data_sec_4 = data_sec_4, permisos=permisos)
+
+@app.route('/new_asistencias', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def add_asistencia():
+    if request.method == "POST":
+        asistencia = Asistencia(0, request.form["fecha"], request.form["horario"])
+        presencia = set(zip(request.form.getlist('id_det'),request.form.getlist('asistencia')))
+
+        Asistencia.nuevo(db, asistencia, presencia)
+        return redirect(url_for('asistencia'))
+    else: 
+        data_sec = Grados.get_tabla_raw(db)
+        data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
+        data_sec_4 = Horario.get_tabla_raw(db)
+        data_det = Alumnos.get_tabla_raw(db)
+        return render_template('/Tablas/asistencias.html', title="Asistencia", data="", 
+                               data_det=data_det, data_sec=data_sec, data_sec_2=data_sec_2, 
+                               data_sec_3=data_sec_3, data_sec_4 = data_sec_4, permisos="")
+
+#------------------PLAN DIARIO---------------------#
+
+@app.route('/plan_diario', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def plan_diario():
+    response = Plan_diario.get_tabla(db)
+    return render_template('table.html', title="Asistencia", data=response)
+
+@app.route('/plan_diario/<id>', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def ver_plan_diario(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            plan = Plan_diario(id, request.form["grado"], request.form["profesor"],request.form["materias"],request.form["titulo"],request.form["fecha"],request.form["descrip"])
+            anexo = request.files['anexo']
+            anexo = limpia_arch(anexo)
+            anexo = convierte_img_a_64_uniq(anexo)
+
+            Plan_diario.update(db, plan, anexo)
+            return redirect(url_for('plan_diario'))
+        elif request.form["btn_submit"] == "btn_delete":
+            Plan_diario.delete(db, id)
+        return redirect(url_for('plan_diario'))
+    else:
+        data, permisos = Plan_diario.ver(db,id)
+        print(data)
+        data_sec = Grados.get_tabla_raw(db)
+        data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
+        return render_template('/Tablas/plan_diario.html', title="Plan diario", data=data, 
+                               data_sec=data_sec, data_sec_2=data_sec_2, data_sec_3=data_sec_3,
+                               permisos=permisos)
+
+@app.route('/new_plan_diario', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def add_plan_diario():
+    if request.method == "POST":
+        plan = Plan_diario(0, request.form["grado"], request.form["profesor"],request.form["materias"],request.form["titulo"],request.form["fecha"],request.form["descrip"])
+        anexo = request.files['anexo']
+        anexo = limpia_arch(anexo)
+        anexo = convierte_img_a_64_uniq(anexo)
+        Plan_diario.nuevo(db, plan, anexo)
+        return redirect(url_for('plan_diario'))
+    else: 
+        data_sec = Grados.get_tabla_raw(db)
+        data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
+        return render_template('/Tablas/plan_diario.html', title="Plan diario", data="", 
+                               data_sec=data_sec, data_sec_2=data_sec_2, data_sec_3=data_sec_3,
+                               permisos="")
+
 #------------------MISC.---------------------#
 
-@app.route('/profesores/legajo/dowload/<value>', methods=['GET', 'POST'])
+@app.route('/profesores/legajo/dowload/<id>', methods=['GET', 'POST'])
 @login_required
-def descarga_legajo(value):
-    return convierte_64_a_img(db,value)
+def descarga_legajo(id):
+    data = Legajo.get_to_descargar(db, id)
+    return convierte_64_a_img(data)
+
+@app.route('/plan_diario/anexo/dowload/<id>', methods=['GET', 'POST'])
+@login_required
+def descarga_anexo(id):
+    data = Plan_diario.get_to_descargar(db, id)
+    return convierte_64_a_img(data)
 
 #------------------ERRORES---------------------#
 
