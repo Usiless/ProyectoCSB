@@ -1,0 +1,135 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+<style>
+    .chk_th {
+        float: right;
+    }
+</style>
+<div class="container">
+    <form method="post" id="myForm">
+        <div class="input-group gap-2 mb-4">
+            <div class="mt-3 col-3">
+                <label for="grado" class="form-label">Grado</label>
+                <select id="grado" class="form-select" name="grado" required onchange="filter_grado()">
+                    <option selected value="">Seleccionar Grado</option>
+                    {%for row in data_sec%}
+                    <option value={{row[0]}}>{{row[1]}} - {{row[2]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="profesor" class="form-label">Profesor</label>
+                <select id="profesor" class="form-select" name="profesor" required onchange="filter_prof()">
+                    <option selected value="">Seleccionar Profesor</option>
+                    {%for row in data_sec_2%}
+                    <option value={{row[1]}} grado="{{row[0]}}">{{row[3]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="materia" class="form-label">Materia</label>
+                <select id="materias" class="form-select" name="materias" required onchange="filter_mat()">
+                    <option selected value="">Seleccionar Materia</option>
+                    {%for row in data_sec_3%}
+                    <option value={{row[2]}} profesor="{{row[1]}}" grado="{{row[0]}}">{{row[3]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="tipo_plani" class="form-label">Tipo de planilla</label>
+                <select id="tipo_plani" class="form-select" name="tipo_plani">
+                    <option selected value="">Seleccionar Tipo de Planilla</option>
+                    <option value="1">Por Materia</option>
+                    <option value="2">Por Grado</option>
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="etapa" class="form-label">Etapa</label>
+                <select id="etapa" class="form-select" name="etapa" required>
+                    <option selected value="">Seleccionar etapa</option>
+                    <option value="1">Primera Etapa</option>
+                    <option value="2">Segunda Etapa</option>
+                </select>
+            </div>
+            <div class="mt-3 col-md3">
+                <label for="anho" class="form-label">Año</label>
+                <input type="number" class="form-control" id="anho" name="anho" required />
+            </div>
+        </div>
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="submit" name="Generar" class="btn btn-primary">Generar</button>
+        </div>
+    </form>
+</div>
+<script>
+    $(document).ready(function filter_grado_start() {
+        hide_prof();
+        hide_mats();
+    });
+
+    function filter_grado() {
+        let prof_select = document.getElementById("profesor");
+        let mat_select = document.getElementById("materias");
+        prof_select.options[prof_select.selectedIndex].selected = false;
+        mat_select.options[mat_select.selectedIndex].selected = false;
+        hide_prof();
+        hide_mats();
+    }
+
+    function filter_prof() {
+        let mat_select = document.getElementById("materias");
+        mat_select.options[mat_select.selectedIndex].selected = false;
+        hide_mats();
+    }
+
+    function hide_prof() {
+        let grado_show = document.getElementById("grado");
+        let grado = grado_show.options[grado_show.selectedIndex].getAttribute("value");
+        let prof_select = document.getElementById("profesor");
+        let profs = prof_select.options;
+
+        if (grado > 0) {
+            prof_select.disabled = false;
+        }
+        else {
+            prof_select.disabled = true;
+        }
+
+        for (let i = 0; i < profs.length; i++) {
+            let a = profs[i];
+            if (a.getAttribute("grado") == grado) {
+                a.hidden = false;
+            }
+            else {
+                a.hidden = true;
+            }
+        }
+    }
+
+    function hide_mats() {
+        let grado_show = document.getElementById("grado");
+        let grado = grado_show.options[grado_show.selectedIndex].getAttribute("value");
+        let prof_select = document.getElementById("profesor");
+        let prof = prof_select.options[prof_select.selectedIndex].getAttribute("value");
+        let mat_select = document.getElementById("materias");
+        let mats = mat_select.options;
+        if (grado > 0 && prof > 0) {
+            mat_select.disabled = false;
+        }
+        else {
+            mat_select.disabled = true;
+        }
+
+        for (let i = 0; i < mats.length; i++) {
+            let a = mats[i];
+            if (a.getAttribute("grado") == grado && a.getAttribute("profesor") == prof) {
+                a.hidden = false;
+            }
+            else {
+                a.hidden = true;
+            }
+        }
+    }
+</script>
+{% endblock %}

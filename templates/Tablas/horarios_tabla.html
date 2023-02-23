@@ -3,14 +3,27 @@
 {% block content %}
 <div class="container">
     <div class="row" style="padding:50px;">
-        <div class="col-md-2">
-            <select class="form-select grados" id="grados_filtro">
-                <option selected value=0>Seleccionar Grado</option>
-                {%for row in grados%}
-                <option value={{row[0]}}>{{row[1]}}° - {{row[2]}}</option>
-                {%endfor%}
-            </select>
-        </div>
+        <form method="post" id="myForm" class="input-group gap-2"">
+            <div class="col-md-2">
+                <select class="form-select grados" id="grados_filtro">
+                    <option selected value=0>Seleccionar Grado</option>
+                    {%for row in grados%}
+                    <option value={{row[0]}}>{{row[1]}}° - {{row[2]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select grados" id="anho" name="anho">
+                    <option selected>Seleccionar anño</option>
+                    <option value=2021>2021</option>
+                    <option value=2022>2022</option>
+                    <option value=2023>2023</option>
+                </select>
+            </div>
+            <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="submit" name="select" class="btn btn-primary">Seleccionar</button>
+            </div>
+        </form>
         {% for i, row in grados | zip(data) %}
         <div id="grado_{{i[0]}}" name="tabla horario">
             <p class="display-4 fw-normal text-center">{{i[1]}}° - {{i[2]}}</p>

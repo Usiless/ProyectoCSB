@@ -1,16 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\env",
-    "\\env\\Lib",
-    "\\env\\Lib\\site-packages",
-    "\\env\\Lib\\site-packages\\flask_login",
-    "\\models",
     "\\static",
     "\\static\\funciones",
     "\\templates",
     "\\templates\\Tablas"
   ],
-  "SelectedNode": "\\templates\\Tablas\\his_obs.html",
+  "SelectedNode": "\\model.py",
   "PreviewInSolutionExplorer": false
 }

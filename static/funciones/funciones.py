@@ -1,5 +1,4 @@
 import io
-from model import Legajo
 import base64
 from PIL import Image
 

@@ -35,7 +35,6 @@ def get_tabla_custom_req(db, sql, tabla, col):
             a = str(str(data).replace("}, {", ", "))
             a = str(str(a).replace("'", f"{chr (34)}"))
             data = a
-        print(data)
         response = {'data': json.loads(data),
                     'tabla': f"{tabla}",
                     'orden': col,
@@ -214,7 +213,6 @@ def nuevo(db,val, nombre_tabla, cols):
         else:
             sql = f"INSERT INTO {nombre_tabla} ({cols}) VALUES ({cantidad_col * '%s, '}%s)"
             cursor.execute(sql, val)
-        print(sql, val)
         db.connection.commit()
         return None
     except db.connection.Error as error :
@@ -346,7 +344,6 @@ def ver(db, id, nombre_tabla, col_id, estado):
     cursor = db.connection.cursor()
     try:
         sql = f"SELECT * from {nombre_tabla} WHERE {col_id} = {id} {'AND estado = 1' * estado}"
-        print(sql)
         cursor.execute(sql)
         results = cursor.fetchone()
         return results
@@ -404,7 +401,6 @@ def obtener_permisos_menu(db):
         flash(err)
         return None
 
-
 def update(db, val, nombre_tabla, cols_act, col_id, sub=0):
     cursor = db.connection.cursor()
     cols_act = cols_act.replace(", ", " = %s, " )
@@ -415,6 +411,7 @@ def update(db, val, nombre_tabla, cols_act, col_id, sub=0):
 
     try:
         sql = f"UPDATE {nombre_tabla} SET {cols_act} = %s WHERE {col_id} = %s;"
+        print(sql, val)
         cursor.execute(sql, val)
         db.connection.commit()
         if sub == 1:

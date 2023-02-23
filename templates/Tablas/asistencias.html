@@ -67,7 +67,7 @@
                         <th class="text-center">Alumno</th>
                         <th class="">
                             Presencia
-                            <input class="form-check-input chk_th form-control" type="checkbox" name="pesencia" onclick="tick_all(this)" afecta="asistencia">
+                            <input class="form-check-input form-control chk_th" type="checkbox" name="pesencia" onclick="tick_all(this)" afecta="asistencia">
                         </th>
                     </tr>
                 </thead>
@@ -90,142 +90,7 @@
         <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
     </form>
 </div>
-<script>
-    $(document).ready(show_alum());
-    function tick_all(check) {
-        let det_checks = document.getElementsByName(check.getAttribute("afecta"));
-        for (let i = 0; i < det_checks.length; i++) {
-            if (check.checked == true) {
-                det_checks[i].value = 1;
-            }
-            else {
-                det_checks[i].value = 0;
-            }
-        }
-    }
-
-    function filter_grado() {
-        let prof_select = document.getElementById("profesor");
-        let mat_select = document.getElementById("materias");
-        let hor_select = document.getElementById("horario");
-        prof_select.options[prof_select.selectedIndex].selected = false;
-        mat_select.options[mat_select.selectedIndex].selected = false;
-        hor_select.options[hor_select.selectedIndex].selected = false;
-        show_alum();
-        hide_prof();
-        hide_mats();
-        hide_hor();
-    }
-
-    function filter_prof() {
-        let mat_select = document.getElementById("materias");
-        let hor_select = document.getElementById("horario");
-        mat_select.options[mat_select.selectedIndex].selected = false;
-        hor_select.options[hor_select.selectedIndex].selected = false;
-        hide_mats();
-        hide_hor();
-    }
-
-    function filter_mat() {
-        let hor_select = document.getElementById("horario");
-        hor_select.options[hor_select.selectedIndex].selected = false;
-        hide_hor();
-    }
-
-    function show_alum() {
-        let grado_show = document.getElementById("grado");
-        let grado = "grado_" + grado_show.options[grado_show.selectedIndex].getAttribute("value");
-        let grados = document.getElementsByClassName("grado_alum");
-        for (let i = 0; i < grados.length; i++){
-            let a = grados[i];
-            if (a.getAttribute("name")==grado){
-                a.hidden = false;
-            }
-            else{
-                a.hidden = true;
-            }
-        }
-    }
-
-    function hide_prof() {
-        let grado_show = document.getElementById("grado");
-        let grado = grado_show.options[grado_show.selectedIndex].getAttribute("value");
-        let prof_select = document.getElementById("profesor");
-        let profs = prof_select.options;
-
-        if (grado > 0) {
-            prof_select.disabled = false;
-        }
-        else {
-            prof_select.disabled = true;
-        }
-
-        for (let i = 0; i < profs.length; i++) {
-            let a = profs[i];
-            if (a.getAttribute("grado") == grado) {
-                a.hidden = false;
-            }
-            else {
-                a.hidden = true;
-            }
-        }
-    }
-
-    function hide_mats() {
-        let grado_show = document.getElementById("grado");
-        let grado = grado_show.options[grado_show.selectedIndex].getAttribute("value");
-        let prof_select = document.getElementById("profesor");
-        let prof = prof_select.options[prof_select.selectedIndex].getAttribute("value");
-        let mat_select = document.getElementById("materias");
-        let mats = mat_select.options;
-        if (grado > 0 && prof > 0) {
-            mat_select.disabled = false;
-        }
-        else {
-            mat_select.disabled = true;
-        }
-
-        for (let i = 0; i < mats.length; i++) {
-            let a = mats[i];
-            if (a.getAttribute("grado") == grado && a.getAttribute("profesor") == prof) {
-                a.hidden = false;
-            }
-            else {
-                a.hidden = true;
-            }
-        }
-    }
-
-    function hide_hor() {
-        let grado_show = document.getElementById("grado");
-        let grado = grado_show.options[grado_show.selectedIndex].getAttribute("value");
-        let prof_select = document.getElementById("profesor");
-        let prof = prof_select.options[prof_select.selectedIndex].getAttribute("value");
-        let mat_select = document.getElementById("materias");
-        let mat = mat_select.options[mat_select.selectedIndex].getAttribute("value");
-        let hor_select = document.getElementById("horario");
-        let hor = hor_select.options;
-
-        if (grado > 0 && prof > 0 && mat > 0) {
-            hor_select.disabled = false;
-        }
-        else {
-            hor_select.disabled = true;
-        }
-
-        for (let i = 0; i < hor.length; i++) {
-            let a = hor[i];
-            console.log(a)
-            if (a.getAttribute("grado") == grado && a.getAttribute("profesor") == prof && a.getAttribute("materia") == mat) {
-                a.hidden = false;
-            }
-            else {
-                a.hidden = true;
-            }
-        }
-    }
-
-</script>
 <script type="text/javascript" src="{{url_for('static', filename='date_today.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='check_all.js')}}"></script>
 <script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
 {% endblock %}

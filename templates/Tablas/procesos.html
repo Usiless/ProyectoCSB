@@ -1,0 +1,321 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{title}}{% endblock %}
+{% block content %}
+<style>
+    .chk_th {
+        float: right;
+    }
+</style>
+<div class="container">
+    <div class="modal" id="myModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Seleccionar</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <table id="tabla" class="hover display" style="width:100%"></table>
+                    </div>
+                    <a id="aux" value="0" hidden></a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onClick=carga_datos_en_detalle() data-bs-dismiss="modal">Seleccionar</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form method="post" id="myForm" onSubmit="return confirm('Confirmar cambios?');">
+        <div class="input-group gap-2 mb-4">
+            {%if data!=""%}
+            <input name="grado" value="{{data[1]}}" hidden>
+            <input name="profesor" value="{{data[3]}}" hidden>
+            <input name="materias" value="{{data[2]}}" hidden>
+            {%endif%}
+            <input name="tot_punt" id="tot_punt_hidden" value="{{data[5]}}" hidden>
+            <div class="mt-3 col-3">
+                <label for="grado" class="form-label">Grado</label>
+                <select id="grado" class="form-select deshab" name="grado" required onchange="filter_grado()">
+                    <option selected value="">Seleccionar Grado</option>
+                    {%for row in data_sec%}
+                    <option value={{row[0]}} {% if row[0]==data[1]%} selected {% endif %}>{{row[1]}} - {{row[2]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="profesor" class="form-label">Profesor</label>
+                <select id="profesor" class="form-select deshab" name="profesor" required onchange="filter_prof()">
+                    <option selected value="">Seleccionar Profesor</option>
+                    {%for row in data_sec_2%}
+                    <option value={{row[1]}} grado="{{row[0]}}" {% if row[1]==data[3]%} selected {% endif %}>{{row[3]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="materia" class="form-label">Materia</label>
+                <select id="materias" class="form-select deshab" name="materias" required onchange="filter_mat()">
+                    <option selected value="">Seleccionar Materia</option>
+                    {%for row in data_sec_3%}
+                    <option value={{row[2]}} profesor="{{row[1]}}" grado="{{row[0]}}" {% if row[2]==data[2]%} selected {% endif %}>{{row[3]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="titulo" class="form-label">Título</label>
+                <input type="text" class="form-control" id="titulo" name="titulo" value="{{data[4]}}" required />
+            </div>
+            <div class="mt-3 col-3">
+                <label for="fecha" class="form-label">Fecha</label>
+                <input type="date" class="form-control" id="fecha" name="fecha" value="{{data[6]}}" required />
+            </div>
+            <div class="mt-3 col-3">
+                <label for="fecha_ent" class="form-label">Fecha Entrega</label>
+                <input type="date" class="form-control" id="fecha_ent" name="fecha_ent" value="{{data[7]}}" />
+            </div>
+            <div class="mt-3 col-3">
+                <label for="tot_punt" class="form-label">Total de Puntos</label>
+                <input type="number" class="form-control deshab" id="tot_punt" value="{{data[5]}}" disabled/>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="tipo_proc" class="form-label">Tipo de proceso</label>
+                <select id="tipo_proc" class="form-select" name="tipo_proc" required>
+                    <option selected value="">Seleccionar proceso</option>
+                    {%for row in data_sec_4%}
+                    <option value={{row[0]}} {% if row[0]==data[9]%} selected {% endif %}>{{row[1]}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="mt-3 col-3">
+                <label for="etapa" class="form-label">Etapa</label>
+                <select id="etapa" class="form-select" name="etapa" required>
+                    <option selected value="">Seleccionar etapa</option>
+                    <option value="1" {% if data[10]==1%} selected {% endif %}>Primera Etapa</option>
+                    <option value="2" {% if data[10]==2%} selected {% endif %}>Segunda Etapa</option>
+                </select>
+            </div>
+            <div class="mb-3 col-sm-12">
+                <label for="capacidad" class="form-label">Capacidad</label>
+                <textarea class="form-control" id="capacidad" name="capacidad" rows="10" maxlength="65535" required autofocus>
+                {{data[11]}}
+                </textarea>
+            </div>
+        </div>
+        <h2 class="text-center">Indicadores</h2>
+        <br />
+        {%if data==""%}
+        <div class="col-md-12 column">
+            <table class="table table-bordered table-hover" id="tabla_ind">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">Descripción</th>
+                        <th class="text-center">
+                            <a id="add_row" class="btn btn-primary col-11" onclick="nuevo_lin({{data_det | length}}, 'tabla_ind')">Añadir fila</a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id='addr_0_tabla_ind'>
+                        <td class="text-center align-middle">1</td>
+                        <td hidden><input type="text" id='id_det_ind' name="id_det_ind" class="form-control det" /></td>
+                        <td><input type="text" id='ind_desc' class="form-control det" disabled /></td>
+                        <td class="text-center">
+                            <a class="btn btn-primary col-6" onclick="setea_la_ubi_detalle(this)" data-bs-toggle="modal" data-bs-target="#myModal">Seleccionar</a>
+                            <a class="btn btn-danger col-5" id='delete_row' onclick="delete_lin(this, tabla_ind.id)">Eliminar fila</a>
+                        </td>
+                    </tr>
+                    <tr id='addr_1_tabla_ind'>
+                </tbody>
+            </table>
+        </div>
+        {%else%}
+        <div class="col-md-12 column">
+            <table class="table table-bordered" id="tabla_alums">
+                <thead>
+                    <tr>
+                        <th class="text-center">Alumnos</th>
+                        {%for row in data_sec_7%}
+                        <th class="">
+                            {{row[1]}}
+                            <input class="form-check-input form-control chk_th" type="checkbox" name="pesencia" onclick="tick_all(this)" afecta="ind_{{row[0]}}">
+                        </th>
+                        {%endfor%}
+                    </tr>
+                </thead>
+                <tbody>
+                    {%for alum in data_sec_6%}
+                    <tr id='addr_{{loop.index-1}}_tabla_ind'>
+                        <td hidden><input type="text" id='id_alum' name="id_alum" class="form-control det" value="{{alum[0]}}"/></td>
+                        <td>{{loop.index}}. {{alum[1]}}</td>
+                        {%for ind in data_sec_7%}
+                        {%for row in data_det%}
+                        {% if row[2]==alum[0] and row[1]==ind[0]%}
+                        <td class="align-middle text-center">
+                            <select id="ind_{{ind[0]}}" name="ind_{{ind[0]}}" class="form-select">
+                                <option value=0 {%if row[3]==0%} selected {%endif%}>No logrado</option>
+                                <option value=1 {%if row[3]==1%} selected {%endif%}>Logrado</option>
+                            </select>
+                        </td>
+                        {%endif%}
+                        {%endfor%}
+                        {%endfor%}
+                    </tr>
+                    {%endfor%}
+                    <tr id='addr_1_tabla_ind'>
+                </tbody>
+            </table>
+        </div>
+        {%endif%}
+        <div id="botones" class="d-grid gap-2 d-md-flex justify-content-md-end"></div>
+    </form>
+</div>
+<script>
+    $(document).ready(function filter_grado_start() {
+        hide_prof();
+        hide_mats();
+    });
+
+    function filter_grado() {
+        let prof_select = document.getElementById("profesor");
+        let mat_select = document.getElementById("materias");
+        prof_select.options[prof_select.selectedIndex].selected = false;
+        mat_select.options[mat_select.selectedIndex].selected = false;
+        hide_prof();
+        hide_mats();
+    }
+
+    function filter_prof() {
+        let mat_select = document.getElementById("materias");
+        mat_select.options[mat_select.selectedIndex].selected = false;
+        hide_mats();
+    }
+
+    function hide_prof() {
+        let grado_show = document.getElementById("grado");
+        let grado = grado_show.options[grado_show.selectedIndex].getAttribute("value");
+        let prof_select = document.getElementById("profesor");
+        let profs = prof_select.options;
+
+        if (grado > 0) {
+            prof_select.disabled = false;
+        }
+        else {
+            prof_select.disabled = true;
+        }
+
+        for (let i = 0; i < profs.length; i++) {
+            let a = profs[i];
+            if (a.getAttribute("grado") == grado) {
+                a.hidden = false;
+            }
+            else {
+                a.hidden = true;
+            }
+        }
+    }
+
+    function hide_mats() {
+        let grado_show = document.getElementById("grado");
+        let grado = grado_show.options[grado_show.selectedIndex].getAttribute("value");
+        let prof_select = document.getElementById("profesor");
+        let prof = prof_select.options[prof_select.selectedIndex].getAttribute("value");
+        let mat_select = document.getElementById("materias");
+        let mats = mat_select.options;
+        if (grado > 0 && prof > 0) {
+            mat_select.disabled = false;
+        }
+        else {
+            mat_select.disabled = true;
+        }
+
+        for (let i = 0; i < mats.length; i++) {
+            let a = mats[i];
+            if (a.getAttribute("grado") == grado && a.getAttribute("profesor") == prof) {
+                a.hidden = false;
+            }
+            else {
+                a.hidden = true;
+            }
+        }
+    }
+
+</script>
+<script type="text/javascript" src="{{url_for('static', filename='check_all.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='date_today.js')}}"></script>
+<script type="text/javascript" id="botones_js" data="{{ data }}" actualizar="{{ permisos[0] }}" eliminar="{{ permisos[1] }}" src="{{url_for('static', filename='generar_botones.js')}}"></script>
+<script type="text/javascript" id="agrega_row" src="{{url_for('static', filename='agrega_row_tabla_det.js')}}"></script>
+<script>
+    const tabla_ind = {{ data_sec_5 | tojson }};
+    var columns = [];
+    var tabla = tabla_ind.tabla
+    if (NoneEmpty(Object.values(tabla_ind.data[0]))) {
+        var datos = [];
+    }
+    else {
+        var datos = tabla_ind.data;
+    }
+
+    function NoneEmpty(arr) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] === "") return true;
+        }
+        return false;
+    }
+
+    $(document).ready(function () {
+        for (var i in tabla_ind.orden) {
+            columns.push({
+                data: tabla_ind.orden[i],
+                title: capitalizeFirstLetter(tabla_ind.orden[i])
+            });
+        }
+        $('#tabla').DataTable({
+            dom: 'Bfrtp',
+            "pageLength": 5,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json',
+            },
+            data: datos,
+            columns: columns,
+            buttons: [],
+            select: true,
+            "columnDefs": [
+                {
+                    "targets": 0,
+                    visible: false,
+                },
+            ]
+        })
+    });
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    };
+</script>
+<script>
+    function carga_datos_en_detalle() {
+        var table = $('#tabla').DataTable();
+        let dt = table.rows({ selected: true }).data()[0];
+        var dt_ord = JSON.parse(JSON.stringify(dt, tabla_ind.orden, 4));
+        let origen = document.getElementById("aux").value;
+        var detalle = document.getElementById(origen);
+
+        for (var f = 1; f < detalle.cells.length - 1; f++) {
+            detalle.cells[f].getElementsByTagName("*")[0].value = Object.values(dt_ord)[f - 1];
+        }
+        calc_tot_pun();
+    }
+    function setea_la_ubi_detalle(x) {
+        var table = $('#tabla').DataTable();
+        var i = $(x).closest('tr');
+        table.rows().deselect();
+        document.getElementById("aux").value = "0";
+        document.getElementById("aux").value = i[0].id;
+    }
+    function calc_tot_pun() {
+        let tot = document.getElementById("tabla_ind").rows.length-2;
+        document.getElementById("tot_punt").value = tot;
+        document.getElementById("tot_punt_hidden").value = tot;
+    } 
+</script>
+{% endblock %}
