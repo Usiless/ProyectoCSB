@@ -1,3 +1,4 @@
+from http.client import responses
 from static.funciones.funciones_base_datos import *
 from datetime import datetime
 
@@ -124,8 +125,8 @@ class Tutor():
     cols = "nombres, apellidos, documento, celular, email, domicilio"
     elim_log = 1
 
-    cols_def = col_id + ", concat(nombres, ' ', apellidos) as Nombre, documento"
-    tabla_col_def = ["ID", "Nombre", "Documento"]
+    cols_def = col_id + ", nombres, apellidos, documento"
+    tabla_col_def = ["ID", "Nombre", "Apellido", "Documento"]
 
     def __init__(self, idtutor, nombre, apellido, documento, celular, email, domicilio):
         self.id = idtutor
@@ -215,6 +216,10 @@ class Tipo_procesos():
 
     def get_tabla(db):
         response = get_tabla(db, Tipo_procesos.cols_def, Tipo_procesos.tabla_col_def, Tipo_procesos.nombre_tabla, Tipo_procesos.orden, Tipo_procesos.elim_log)
+        return response
+
+    def get_tabla_raw(db):
+        response = get_tabla_raw(db, Tipo_procesos.cols_def, Tipo_procesos.nombre_tabla, Tipo_procesos.elim_log)
         return response
     
     def nuevo(db, tipo_proceso):
@@ -360,6 +365,32 @@ class Indicadores():
     
     def get_tabla(db):
         response = get_tabla(db, Indicadores.cols_def, Indicadores.tabla_col_def, Indicadores.nombre_tabla, Indicadores.orden, Indicadores.elim_log)
+        return response
+
+    def get_tabla_raw_x_proc(db, id_proc):
+        sql = f"""SELECT DISTINCT indicadores_proceso.idindicadores, descripción
+                FROM indicadores_proceso, indicadores
+                WHERE indicadores_proceso.idindicadores = indicadores.idindicadores
+                and idproceso = {id_proc};"""
+        response = get_tabla_custom_req_raw(db, sql)
+        return response
+
+    def get_tabla_raw_x_proc_planilla(db, id_proc):
+        aux = []
+        if len(id_proc)>1:
+            sql = f"""SELECT DISTINCT idproceso, descripción
+                FROM indicadores_proceso, indicadores
+                WHERE indicadores_proceso.idindicadores = indicadores.idindicadores
+                and idproceso in {id_proc} ORDER BY idproceso;"""
+        else:
+            sql = f"""SELECT DISTINCT idproceso, descripción
+                FROM indicadores_proceso, indicadores
+                WHERE indicadores_proceso.idindicadores = indicadores.idindicadores
+                and idproceso = {id_proc[0]} ORDER BY idproceso;"""
+        response = get_tabla_custom_req_raw(db, sql)
+        for i in response:
+            aux.append(i[1])
+        response = ("Alumnos", *aux)
         return response
     
     def nuevo(db, indicadores):
@@ -620,6 +651,14 @@ class Grados():
         response = get_tabla_compleja_raw(db, Grados.cols_def, Grados.nombre_tabla, tablas_sec, Grados.elim_log)
         return response
     
+    def ver_materias_por_grado(db, idgrado):
+        sql = f"""select nombre, sum(total_puntos) from procesos, materias 
+                  where idproceso in (select idproceso from procesos where idgrado = {idgrado} and procesos.estado = 1) and
+                  materias.idmateria=procesos.idmateria 
+                  group by procesos.idmateria;"""
+        materia_grado = get_tabla_custom_req_raw(db,sql)
+        return materia_grado
+
     def nuevo(db, grado):
         val = grado.grado, grado.idseccion, grado.idnivel_escolar
         nuevo(db, val, Grados.nombre_tabla, Grados.cols)
@@ -658,7 +697,7 @@ class Horario():
     #    self.idseccion = idseccion
     #    self.idnivel_escolar = idnivel_escolar
 
-    def get_tabla(db):
+    def get_tabla(db, anho):
         response = []
         grados = Grados.get_tabla_raw(db)
         for grado in grados:
@@ -667,7 +706,7 @@ class Horario():
                 sql = f"""(SELECT idhorario, idgrado, dia, CONCAT(TIME_FORMAT(inicio, '%H:%i'), ' - ', TIME_FORMAT(fin, '%H:%i')) AS Hora, 
                         CONCAT( materias.nombre, ' - ',profesores.nombres, ' ', profesores.apellidos) AS 'Materia - Docente' 
                         FROM horario  NATURAL JOIN grados NATURAL JOIN materias NATURAL JOIN profesores WHERE estado = 1 and dia = {i} 
-                        and idgrado = {grado[0]} ORDER BY dia, inicio) 
+                        and idgrado = {grado[0]} and año = {anho} ORDER BY dia, inicio) 
                         UNION 
                         (SELECT '','','',
                         CONCAT(TIME_FORMAT(horario_recreo_manhana, '%H:%i'), ' - ', TIME_FORMAT(ADDTIME(horario_recreo_manhana,'00:20:00'), '%H:%i')),
@@ -864,6 +903,13 @@ class Alumnos():
         cols_def = f"idalumno, concat(nombres, ' ', apellidos) as Nombre, idgrado, concat({Grados.nombre_tabla}.grado,' - ', {Secciones.nombre_tabla}.nombre) as Grado, 0"
         tablas_sec = Grados.nombre_tabla, Secciones.nombre_tabla
         response = get_tabla_compleja_raw(db, cols_def, Alumnos.nombre_tabla, tablas_sec, Alumnos.orden, Alumnos.elim_log)
+        return response
+
+    def get_tabla_raw_x_grado(db, idgrado):
+        sql = f"""SELECT idalumno, CONCAT(nombres, " ", apellidos) AS alumnos
+                FROM alumnos
+                WHERE idgrado = {idgrado} order by apellidos"""
+        response = get_tabla_custom_req_raw (db, sql)
         return response
 
     def update(db, alumno, det_1, det_2, det_2_sec):
@@ -1353,6 +1399,8 @@ class Auditoria():
                 WHERE TABLE_SCHEMA = 'csb_prov' AND TABLE_NAME = '{aud.tabla}' and COLUMN_NAME not in ('estado', 'anexo');"""
         cols = get_tabla_custom_req_raw(db, sql)
         datos_old = ver(db, id_dato, aud.tabla, id_col, 0)
+        print(datos_old)
+        print(cols)
 
         for i in range(0,len(cols)):
             datos_anteriores[f"{cols[i][0]}"] = str(datos_old[i])
@@ -1464,8 +1512,6 @@ class Presencia():
         for row in datos_sec:
             val = row[1], row[0]
             aud = Auditoria(Presencia.nombre_tabla,tipo_elim)
-            print(val)
-            print(Presencia.col_id)
             Auditoria.nuevo_del_sub_tabla(db, aud, val, Presencia.col_id)
             delete_fis_child(db, Presencia.nombre_tabla, Presencia.col_id, val) #Asistencias-Alumnos
 
@@ -1473,13 +1519,13 @@ class Plan_diario():
     nombre_tabla = "plan_diario"
     orden = "fecha, idgrado, idprofesor, idmateria"
     col_id = "idplan_diario"
-    cols = "idgrado, idmateria, idprofesor, nombre, fecha, descripcion, anexo"
+    cols = "idgrado, idmateria, idprofesor, nombre, fecha, descripcion, estado, anexo"
     elim_log = 0
 
     cols_def = col_id + ", CAST(idfecha AS char), CONCAT(grados.grado, secciones.nombre), CONCAT(profesores.nombres,profesores.apellidos), materias.nombre"
     tabla_col_def = ["ID", "Fecha", "Grado", "Profesor", "Materia"]
 
-    def __init__(self, idplan_diario, idgrado, idmateria, idprofesor, nombre, fecha, descripcion):
+    def __init__(self, idplan_diario, idgrado, idmateria, idprofesor, nombre, fecha, descripcion, estado):
         self.idplan_diario = idplan_diario
         self.idgrado = idgrado
         self.idmateria = idmateria
@@ -1487,6 +1533,7 @@ class Plan_diario():
         self.nombre = nombre
         self.fecha = fecha
         self.descripcion = descripcion
+        self.estado = estado
     
     def get_tabla(db):
         sql ="""SELECT  idplan_diario, CAST(fecha AS char), CONCAT(grados.grado, " - ", secciones.nombre), CONCAT(profesores.nombres," ",profesores.apellidos), materias.nombre 
@@ -1508,7 +1555,8 @@ class Plan_diario():
         return datos[7]
 
     def update(db, plan, anexo):
-        val = plan.idgrado, plan.idmateria, plan.idprofesor, plan.nombre, plan.fecha, plan.descripcion, anexo, plan.idplan_diario
+        val = plan.idgrado, plan.idmateria, plan.idprofesor, plan.nombre, plan.fecha, plan.descripcion, plan.estado, anexo, plan.idplan_diario
+        print(val)
         aud = Auditoria(Plan_diario.nombre_tabla,"modificación")
         Auditoria.nuevo_upd(db, aud, plan.idplan_diario, Plan_diario.col_id, plan)
         update(db, val, Plan_diario.nombre_tabla, Plan_diario.cols, Plan_diario.col_id)
@@ -1521,3 +1569,207 @@ class Plan_diario():
         aud = Auditoria(Plan_diario.nombre_tabla,"borrado")
         Auditoria.nuevo_del(db, aud, id, Plan_diario.col_id)
         delete_fis(db, Plan_diario.nombre_tabla, Plan_diario.col_id, id) #Plan Diario
+
+class Procesos():
+    nombre_tabla = "procesos"
+    orden = "fecha"
+    col_id = "idproceso"
+    cols = "idgrado, idmateria, idprofesor, titulo, total_puntos, fecha, fecha_entrega, idtipo_proceso, etapa, capacidad"
+    elim_log = 0
+
+    cols_def = col_id + ", CAST(fecha AS char), CONCAT(grados.grado, secciones.nombre), CONCAT(profesores.nombres,profesores.apellidos), materias.nombre"
+    tabla_col_def = ["ID", "Fecha", "Grado", "Profesor", "Materia"]
+
+    def __init__(self, idproceso, idgrado, idmateria, idprofesor, titulo, total_puntos, fecha, fecha_entrega, idtipo_proceso, etapa, capacidad):
+        self.idproceso = idproceso
+        self.idgrado = idgrado
+        self.idmateria = idmateria
+        self.idprofesor = idprofesor
+        self.total_puntos = total_puntos
+        self.titulo = titulo
+        self.fecha = fecha
+        self.fecha_entrega = fecha_entrega
+        self.idtipo_proceso = idtipo_proceso
+        self.etapa = etapa
+        self.capacidad = capacidad
+    
+    def get_tabla(db):
+        sql ="""SELECT  idproceso, CAST(fecha AS char), CONCAT(grados.grado, " - ", secciones.nombre), CONCAT(profesores.nombres," ",profesores.apellidos), materias.nombre 
+                FROM procesos, secciones, grados, materias, profesores 
+                WHERE procesos.idgrado=grados.idgrado AND
+                procesos.idmateria=materias.idmateria AND
+                procesos.idprofesor=profesores.idprofesor AND
+                grados.idseccion=secciones.idseccion AND
+                procesos.estado = 1;"""
+        response = get_tabla_custom_req(db, sql, Procesos.nombre_tabla, Procesos.tabla_col_def)
+        return response
+
+    def ver(db, proc_id):
+        permisos = obtener_permisos(db, Procesos.nombre_tabla)
+        datos = ver(db,proc_id,Procesos.nombre_tabla,Procesos.col_id,Procesos.elim_log)
+        data_sec = Ind_proc.ver(db, proc_id)
+        return datos, data_sec, permisos
+
+    def ver_para_planilla_materia(db, grado, profesor, materia, etapa, anho):
+        sql = f"""SELECT idproceso FROM procesos WHERE idgrado = {grado} AND idprofesor = {profesor} AND idmateria = {materia} AND etapa = {etapa} AND YEAR(fecha) = {anho};"""
+        proc_id = get_tabla_custom_req_raw(db, sql)
+        proc_id = tuple(*zip(*proc_id))
+        if proc_id:
+            sql = f"""SELECT CONCAT(grados.grado, " - ", secciones.nombre), CONCAT(profesores.nombres," ",profesores.apellidos), materias.nombre, etapa, YEAR(fecha)
+                    FROM procesos, secciones, grados, materias, profesores 
+                    WHERE procesos.idgrado=grados.idgrado AND
+                    procesos.idmateria=materias.idmateria AND
+                    procesos.idprofesor=profesores.idprofesor AND
+                    grados.idseccion=secciones.idseccion AND
+                    idproceso = {proc_id[0]};"""
+            cabecera_gral = get_tabla_custom_req_raw(db, sql)[0]
+            if len(proc_id) > 1:
+                sql = f"""SELECT procesos.idproceso, titulo, fecha, capacidad, count(distinct indicadores_proceso.idindicadores)
+                        FROM procesos, indicadores_proceso
+                        WHERE indicadores_proceso.idproceso = procesos.idproceso
+                        and procesos.idproceso in {proc_id}
+                        group by procesos.idproceso
+                        ORDER BY procesos.idproceso;"""
+            else: 
+                sql = f"""SELECT procesos.idproceso, titulo, fecha, capacidad, count(distinct indicadores_proceso.idindicadores)
+                        FROM procesos, indicadores_proceso
+                        WHERE indicadores_proceso.idproceso = procesos.idproceso
+                        and procesos.idproceso = {proc_id}
+                        group by procesos.idproceso
+                        ORDER BY procesos.idproceso;"""
+            tareas = get_tabla_custom_req_raw(db, sql)
+            colums = Indicadores.get_tabla_raw_x_proc_planilla(db, proc_id)
+            data_sec = Ind_proc.ver_para_planilla_materia(db, proc_id)
+            return cabecera_gral, tareas, data_sec, colums
+        else:
+            return None,None,None,None
+
+    def ver_para_planilla_grado(db, grado, profesor, materia, etapa, anho):
+        sql = f"""SELECT idproceso FROM procesos WHERE idgrado = {grado} AND etapa = {etapa} AND YEAR(fecha) = {anho};"""
+        proc_id = get_tabla_custom_req_raw(db, sql)
+        proc_id = tuple(*zip(*proc_id))
+        if proc_id:
+            sql = f"""SELECT CONCAT(grados.grado, " - ", secciones.nombre), CONCAT(profesores.nombres," ",profesores.apellidos), materias.nombre, etapa, YEAR(fecha), nivel_escolar.nombre
+                    FROM procesos, secciones, grados, materias, profesores, nivel_escolar
+                    WHERE procesos.idgrado=grados.idgrado AND
+                    procesos.idmateria=materias.idmateria AND
+                    procesos.idprofesor=profesores.idprofesor AND
+                    grados.idseccion=secciones.idseccion AND
+                    grados.idnivel_escolar=nivel_escolar.idnivel_escolar AND
+                    idproceso = {proc_id[0]}"""
+            cabecera_gral = get_tabla_custom_req_raw(db, sql)[0]
+            colums = Grados.ver_materias_por_grado(db,grado)
+            data_sec = Ind_proc.ver_para_planilla_grado(db, proc_id)
+            return cabecera_gral, data_sec, colums
+        else:
+            return None,None,None,None
+
+    def update(db, proc, indics_logrados):
+        val = proc.idgrado, proc.idmateria, proc.idprofesor, proc.titulo, proc.total_puntos, proc.fecha, proc.fecha_entrega, proc.idtipo_proceso, proc.etapa, proc.capacidad, proc.idproceso
+        update(db, val, Procesos.nombre_tabla, Procesos.cols, Procesos.col_id)
+        Ind_proc.upd_multi(db,indics_logrados,proc.idproceso)
+
+    def nuevo(db, proc, ind):
+        val = proc.idgrado, proc.idmateria, proc.idprofesor, proc.titulo, proc.total_puntos, proc.fecha, proc.fecha_entrega, proc.idtipo_proceso, proc.etapa, proc.capacidad
+        nuevo(db, val, Procesos.nombre_tabla, Procesos.cols)  
+        Ind_proc.nuevo_multi(db, ind, proc.idgrado)
+
+    def delete(db, id):
+        aud = Auditoria(Procesos.nombre_tabla,"borrado_logico")
+        Auditoria.nuevo_del(db, aud, id, Procesos.col_id)
+        delete_logic(db, Procesos.nombre_tabla, Procesos.col_id, id) #Procesos (Tareas)
+
+class Ind_proc():
+    nombre_tabla = "indicadores_proceso"
+    orden = "indicadores_proceso"
+    col_id = "idproceso", "idindicadores", "idalumno"
+    cols = "logrado"
+    elim_log = 0
+    cols_def = "nombres, apellidos, asistencia"
+
+    def ver(db, id):
+        ind_log = ver_sub_tabla(db, id, Ind_proc.nombre_tabla, Procesos.col_id)
+        return ind_log
+
+    def ver_para_planilla_materia(db, id):
+        data_sec = []
+        if len(id)>1:
+            sql = f"""SELECT procesos.idproceso, concat(nombres, ' ', apellidos) as Nombres, GROUP_CONCAT(DISTINCT "(",det.idproceso,", ", det.idindicadores,", ", det.logrado, ") " order by det.idproceso,det.idindicadores)
+                    FROM procesos, alumnos
+                    INNER JOIN
+                    (SELECT DISTINCT indicadores_proceso.idproceso,idalumno, indicadores.idindicadores, descripción, logrado from 
+                    indicadores, indicadores_proceso
+                    where indicadores.idindicadores = indicadores_proceso.idindicadores and indicadores_proceso.idproceso in {id} order by indicadores_proceso.idproceso) as det
+                    ON det.idalumno = alumnos.idalumno and det.idproceso in {id}
+                    WHERE alumnos.estado != 0 and procesos.idproceso in {id} and procesos.estado = 1
+                    group by alumnos.idalumno
+                    order by apellidos"""
+        else:
+            sql = f"""SELECT procesos.idproceso, concat(nombres, ' ', apellidos) as Nombres, GROUP_CONCAT(DISTINCT "(",det.idproceso,", ", det.idindicadores,", ", det.logrado, ") " order by det.idproceso,det.idindicadores)
+                    FROM procesos, alumnos
+                    INNER JOIN
+                    (SELECT DISTINCT indicadores_proceso.idproceso,idalumno, indicadores.idindicadores, descripción, logrado from 
+                    indicadores, indicadores_proceso
+                    where indicadores.idindicadores = indicadores_proceso.idindicadores and indicadores_proceso.idproceso = {id[0]} order by indicadores_proceso.idproceso) as det
+                    ON det.idalumno = alumnos.idalumno and det.idproceso = {id[0]}
+                    WHERE alumnos.estado != 0 and procesos.idproceso = {id[0]} and procesos.estado = 1
+                    group by alumnos.idalumno
+                    order by apellidos"""
+        ind_log = get_tabla_custom_req_raw(db, sql)
+        for row in ind_log:
+            aux = []
+            for i in eval(row[2]):
+                aux.append(i[len(i)-1])
+            data_sec.append((row[1],*aux))
+        return data_sec
+
+    def ver_para_planilla_grado(db, proc_id):
+        data_sec = []
+        if len(proc_id) > 1:
+            a = "in"
+        else:
+            a = "="
+            proc_id = proc_id[0]
+        sql = f"""SELECT procesos.idproceso, concat(nombres, ' ', apellidos) as Nombres, GROUP_CONCAT(Distinct "(", det.idmateria, ", ", det.logrado, ") " order by det.idmateria) as proc
+                FROM procesos, alumnos
+                INNER JOIN
+                (SELECT idalumno, idmateria, sum(logrado) as logrado FROM csb_prov.indicadores_proceso, procesos
+				where
+				procesos.idproceso {a} {proc_id} and
+				indicadores_proceso.idproceso = procesos.idproceso
+				group by procesos.idmateria, idalumno) as det
+                ON det.idalumno = alumnos.idalumno
+                WHERE alumnos.estado != 0 and procesos.idgrado = 1 and procesos.estado = 1
+                group by alumnos.idalumno
+                order by apellidos"""
+        ind_log = get_tabla_custom_req_raw(db, sql)
+        for row in ind_log:
+            aux = []
+            for i in eval(row[2]):
+                aux.append(i[len(i)-1])
+            data_sec.append((row[1],*aux))
+        return data_sec
+
+    def nuevo_multi(db, id_inds, id_grad):
+        last_insert = get_last_insert(db, Procesos.nombre_tabla, Procesos.col_id)
+        sql = f"""SELECT idalumno FROM alumnos WHERE idgrado={id_grad};"""
+        alum_grad = get_tabla_custom_req_raw(db, sql)
+        for row in id_inds:
+            for alumn in alum_grad:
+                val = last_insert[0], row, alumn[0], 0
+                nuevo(db, val, Ind_proc.nombre_tabla, "idproceso, idindicadores, idalumno, " + Ind_proc.cols)
+    
+    def upd_multi(db, indics_logrados, id_prin):
+        indics = Indicadores.get_tabla_raw_x_proc(db, id_prin)
+        for i in range(0,len(indics)):
+            for row in indics_logrados:
+                val = row[i+1], id_prin, indics[i][0], row[0]
+                update(db, val, Ind_proc.nombre_tabla, Ind_proc.cols,Ind_proc.col_id) 
+
+    def delete(db, id, tipo_elim):
+        datos_sec = ver_sub_tabla(db, id, Presencia.nombre_tabla, Asistencia.col_id)
+        for row in datos_sec:
+            val = row[1], row[0]
+            aud = Auditoria(Presencia.nombre_tabla,tipo_elim)
+            Auditoria.nuevo_del_sub_tabla(db, aud, val, Presencia.col_id)
+            delete_fis_child(db, Presencia.nombre_tabla, Presencia.col_id, val) #Procesos-Indicadores-Alumnos

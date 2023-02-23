@@ -43,6 +43,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if session['permisos']['alumnos']['leer'] + session['permisos']['tutores']['leer'] + session['permisos']['profesores']['leer'] + session['permisos']['doctores']['leer'] + session['permisos']['personal']['leer'] >= 1%}
                     <li class="nav-item dropdown">
                         <a href="#"
                            class="nav-link dropdown-toggle"
@@ -78,12 +79,13 @@
                             {%endif%}
                             {% if session['permisos']['personal']['leer'] == 1%}
                             <li>
-                                <a href="{{url_for('personal')}}""
+                                <a href="{{url_for('personal')}}" "
                                    class="dropdown-item">Personal</a>
                             </li>
                             {%endif%}
                         </ul>
                     </li>
+                    {%endif%}
                     <li class="nav-item dropdown">
                         <a href="#"
                            class="nav-link dropdown-toggle"
@@ -109,14 +111,29 @@
                                    class="dropdown-item">Asistencias</a>
                             </li>
                             {%endif%}
+                            {% if session['permisos']['procesos']['leer'] == 1%}
+                            <li>
+                                <a href="{{url_for('procesos')}}"
+                                   class="dropdown-item">Procesos</a>
+                            </li>
+                            {%endif%}
                             {% if session['permisos']['plan_diario']['leer'] == 1%}
                             <li>
                                 <a href="{{url_for('plan_diario')}}"
                                    class="dropdown-item">Planes Diarios</a>
                             </li>
                             {%endif%}
+                            {% if session['permisos']['plan_diario']['leer'] == 1%}
+                            <li>
+                                <a href="{{url_for('planillas')}}"
+                                   class="dropdown-item">Planillas</a>
+                            </li>
+                            {%endif%}
                         </ul>
                     </li>
+                    {% if session['permisos']['materias']['leer'] + session['permisos']['grados']['leer'] + session['permisos']['secciones']['leer'] +
+                    session['permisos']['tipo_procesos']['leer'] + session['permisos']['nivel_escolar']['leer'] + session['permisos']['indicadores']['leer'] +
+                    session['permisos']['gravedad']['leer'] + session['permisos']['afecciones']['leer']  >= 1%}
                     <li class="nav-item dropdown">
                         <a href="#"
                            class="nav-link dropdown-toggle"
@@ -176,6 +193,8 @@
                             {%endif%}
                         </ul>
                     </li>
+                    {%endif%}
+                    {% if session['permisos']['visitantes']['leer'] + session['permisos']['indicadores']['leer'] >= 1%}
                     <li class="nav-item dropdown">
                         <a href="#"
                            class="nav-link dropdown-toggle"
@@ -185,7 +204,7 @@
                            aria-expanded="false">Portería</a>
                         <ul class="dropdown-menu"
                             aria-labelledby="navbarDropdown">
-                            {% if session['permisos']['indicadores']['leer'] == 1%}
+                            {% if session['permisos']['visitantes']['leer'] == 1%}
                             <li>
                                 <a href="{{url_for('visitantes')}}"
                                    class="dropdown-item">Visitantes</a>
@@ -199,14 +218,11 @@
                             {%endif%}
                         </ul>
                     </li>
-                    <li class="nav-item">
-                    </li>
+                    {%endif%}
                     <li class="nav-item">
                         <a href="{{ url_for('about') }}" class="nav-link">Acerca</a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">Planillas</a>
-                    </li>
+                    {% if session['permisos']['users']['leer'] + session['permisos']['tipo_user']['leer'] + session['permisos']['auditoria']['leer'] >= 1%}
                     <li class="nav-item dropdown">
                         <a href="#"
                            class="nav-link dropdown-toggle"
@@ -233,6 +249,7 @@
                             {%endif%}
                         </ul>
                     </li>
+                    {%endif%}
                 </ul>
                 {%if current_user.is_authenticated%}
                 <form class="d-flex">

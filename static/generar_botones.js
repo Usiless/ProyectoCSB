@@ -4,6 +4,7 @@
     var eliminar = document.getElementById("botones_js").getAttribute("eliminar");
     var element = document.getElementById("botones");
     var e = document.getElementsByClassName("form-control");
+    var d = document.getElementsByClassName("deshab");
 
     if (data) {
         console.log("No está vacío");
@@ -24,6 +25,9 @@
         }
         if (eliminar == 1) {
             agregar_eliminar();
+        }
+        for (var i = 0; i < d.length; i++) {
+            d[i].setAttribute('disabled', 'disabled');
         }
     }
     else {

@@ -1,8 +1,10 @@
-﻿from flask import abort, Flask, render_template, request, redirect, url_for, flash
+﻿from asyncio.windows_events import NULL
+from flask import abort, Flask, render_template, request, redirect, url_for, flash, send_from_directory
 from flask_mysqldb import MySQL
 from flask_login import LoginManager, login_user, logout_user, login_required
 import os
 from functools import wraps
+from datetime import date
 
 from config import config
 
@@ -11,7 +13,7 @@ from models.entities.User import User
 from model import *
 
 from static.funciones.funciones import *
-
+from static.funciones.funciones_plani import planilla_proc_detallado, planilla_proc_grado
 
 # SB ADMIN boostrap
 # Charisma
@@ -20,7 +22,7 @@ from static.funciones.funciones import *
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config.from_object(config['development'])
-UPLOAD_FOLDER = 'D:/Downloads'
+UPLOAD_FOLDER = 'planillas'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 db = MySQL(app)
@@ -558,38 +560,42 @@ def add_grados():
 
 @app.route('/horario_all/', methods=['GET', 'POST'])
 def horario():
+    anho = date.today()
+    anho = anho.year
+    if request.method == "POST":
+        anho = request.form["anho"]
     grados = Grados.get_tabla_raw(db)
-    response = Horario.get_tabla(db)
+    response = Horario.get_tabla(db, anho)
 
     return render_template('/Tablas/horarios_tabla.html', title="Horarios", data=response, grados=grados)
 
-@login_required
-@app.route('/horario/<id>', methods=['GET', 'POST']) #No se si inlcuir esta parte, depende del tipo de user a donde le lleva el link
-def ver_horario(id):
-    if request.method == "POST":
-        if request.form["btn_submit"] == "btn_editar":
-            data = Grados(id, request.form["grado"], request.form["seccion"], request.form["nivel"])
-            Grados.update(db, data)
-        elif request.form["btn_submit"] == "btn_delete":
-            Grados.delete(db, id)
-        return redirect(url_for('grados'))
-    else:
-        data, permisos = Grados.ver(db,id)
-        data_sec = Secciones.get_tabla_raw(db)
-        data_sec_2 = Nivel_escolar.get_tabla_raw(db)
-        return render_template('/Tablas/grados.html', title="Grados", data=data, permisos=permisos, data_sec = data_sec, data_sec_2 = data_sec_2)
+#@login_required
+#@app.route('/horario/<id>', methods=['GET', 'POST']) #No se si inlcuir esta parte, depende del tipo de user a donde le lleva el link
+#def ver_horario(id):
+#    if request.method == "POST":
+#        if request.form["btn_submit"] == "btn_editar":
+#            data = Grados(id, request.form["grado"], request.form["seccion"], request.form["nivel"])
+#            Grados.update(db, data)
+#        elif request.form["btn_submit"] == "btn_delete":
+#            Grados.delete(db, id)
+#        return redirect(url_for('grados'))
+#    else:
+#        data, permisos = Grados.ver(db,id)
+#        data_sec = Secciones.get_tabla_raw(db)
+#        data_sec_2 = Nivel_escolar.get_tabla_raw(db)
+#        return render_template('/Tablas/grados.html', title="Grados", data=data, permisos=permisos, data_sec = data_sec, data_sec_2 = data_sec_2)
 
-@login_required
-@app.route('/new_horario', methods=['GET', 'POST'])#Solo por Excel
-def add_horario():
-    if request.method == "POST":
-        data = Grados(0, request.form["grado"], request.form["seccion"], request.form["nivel"])
-        Grados.nuevo(db, data)
-        return redirect(url_for('grados'))
-    else: 
-        data_sec = Secciones.get_tabla_raw(db)
-        data_sec_2 = Nivel_escolar.get_tabla_raw(db)
-        return render_template('/Tablas/grados.html', title="Grados", data="", permisos="", data_sec = data_sec, data_sec_2 = data_sec_2)
+#@login_required
+#@app.route('/new_horario', methods=['GET', 'POST'])#Solo por Excel
+#def add_horario():
+#    if request.method == "POST":
+#        data = Grados(0, request.form["grado"], request.form["seccion"], request.form["nivel"])
+#        Grados.nuevo(db, data)
+#        return redirect(url_for('grados'))
+#    else: 
+#        data_sec = Secciones.get_tabla_raw(db)
+#        data_sec_2 = Nivel_escolar.get_tabla_raw(db)
+#        return render_template('/Tablas/grados.html', title="Grados", data="", permisos="", data_sec = data_sec, data_sec_2 = data_sec_2)
 
 #------------------DOCTORES---------------------#
 
@@ -978,7 +984,7 @@ def add_asistencia():
 @role_required(['admin','directivo', 'profesor'])
 def plan_diario():
     response = Plan_diario.get_tabla(db)
-    return render_template('table.html', title="Asistencia", data=response)
+    return render_template('table.html', title="Plan Diario", data=response)
 
 @app.route('/plan_diario/<id>', methods=['GET', 'POST'])
 @login_required
@@ -986,7 +992,11 @@ def plan_diario():
 def ver_plan_diario(id):
     if request.method == "POST":
         if request.form["btn_submit"] == "btn_editar":
-            plan = Plan_diario(id, request.form["grado"], request.form["profesor"],request.form["materias"],request.form["titulo"],request.form["fecha"],request.form["descrip"])
+            estado = 0
+            if session["rol"] in ['admin','directivo']:
+                estado = request.form["aprob"]
+            plan = Plan_diario(id, request.form["grado"], request.form["profesor"],request.form["materias"],request.form["titulo"],request.form["fecha"],request.form["descripcion"], estado)
+            print(estado)
             anexo = request.files['anexo']
             anexo = limpia_arch(anexo)
             anexo = convierte_img_a_64_uniq(anexo)
@@ -998,7 +1008,6 @@ def ver_plan_diario(id):
         return redirect(url_for('plan_diario'))
     else:
         data, permisos = Plan_diario.ver(db,id)
-        print(data)
         data_sec = Grados.get_tabla_raw(db)
         data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
         return render_template('/Tablas/plan_diario.html', title="Plan diario", data=data, 
@@ -1023,6 +1032,115 @@ def add_plan_diario():
                                data_sec=data_sec, data_sec_2=data_sec_2, data_sec_3=data_sec_3,
                                permisos="")
 
+#------------------PROCESOS(TAREAS)---------------------#
+
+@app.route('/procesos', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def procesos():
+    response = Procesos.get_tabla(db)
+    return render_template('table.html', title="Procesos", data=response)
+
+@app.route('/procesos/<id>', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def ver_procesos(id):
+    if request.method == "POST":
+        if request.form["btn_submit"] == "btn_editar":
+            proceso = Procesos(id, request.form["grado"], request.form["materias"],request.form["profesor"],request.form["titulo"],
+                           request.form["tot_punt"],request.form["fecha"],request.form["fecha_ent"],
+                           request.form["tipo_proc"], request.form["etapa"], request.form["capacidad"])
+            data_sec_7 = Indicadores.get_tabla_raw_x_proc(db, id)
+            
+            alums = request.form.getlist("id_alum")
+
+            indic_grados = NULL
+
+            for index, ind in enumerate(data_sec_7):
+                aux = request.form.getlist(f"ind_{ind[0]}")
+                if index==0:
+                    indic_grados = indic_grados, aux
+                    indic_grados = indic_grados[1:len(indic_grados)][0]
+                else:
+                    indic_grados = zip(*zip(*indic_grados), aux)
+                    if index == len(data_sec_7)-1:
+                        indic_grados = list(zip(alums,*zip(*indic_grados)))
+            
+            Procesos.update(db, proceso, indic_grados)
+            return redirect(url_for('procesos'))
+        elif request.form["btn_submit"] == "btn_delete":
+            Procesos.delete(db, id)
+        return redirect(url_for('procesos'))
+    else:
+        data, data_det, permisos = Procesos.ver(db,id)
+        data_sec = Grados.get_tabla_raw(db)
+        data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
+        data_sec_4 = Tipo_procesos.get_tabla_raw(db)
+        data_sec_6 = Alumnos.get_tabla_raw_x_grado(db, data[1])
+        data_sec_7 = Indicadores.get_tabla_raw_x_proc(db, id)
+        print(data_det)
+        return render_template('/Tablas/procesos.html', title="Procesos", data=data, data_det=data_det,
+                               data_sec=data_sec, data_sec_2=data_sec_2, data_sec_3=data_sec_3,
+                               data_sec_4=data_sec_4, data_sec_5="", data_sec_6=data_sec_6, data_sec_7=data_sec_7,
+                               permisos=permisos)
+
+@app.route('/new_procesos', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def add_procesos():
+    if request.method == "POST":
+        proceso = Procesos(0, request.form["grado"], request.form["materias"],request.form["profesor"],request.form["titulo"],
+                           request.form["tot_punt"],request.form["fecha"],request.form["fecha_ent"],
+                           request.form["tipo_proc"], request.form["etapa"], request.form["capacidad"])
+        indic_grados = request.form.getlist("id_det_ind")
+        Procesos.nuevo(db, proceso, indic_grados)
+        return redirect(url_for('procesos'))
+    else: 
+        data_sec = Grados.get_tabla_raw(db)
+        data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
+        data_sec_4 = Tipo_procesos.get_tabla_raw(db)
+        data_sec_5 = Indicadores.get_tabla(db)
+        return render_template('/Tablas/procesos.html', title="Procesos", data="", 
+                               data_sec=data_sec, data_sec_2=data_sec_2, data_sec_3=data_sec_3,
+                               data_sec_4=data_sec_4, data_sec_5=data_sec_5, data_sec_6="", data_sec_7="",
+                               permisos="")
+
+
+#------------------PLANILLAS---------------------#
+@app.route('/planillas', methods=['GET', 'POST'])
+@login_required
+@role_required(['admin','directivo', 'profesor'])
+def planillas():
+    if request.method == "POST":
+        grado = request.form["grado"]
+        materia = request.form["materias"]
+        profesor = request.form["profesor"]
+        etapa = request.form["etapa"]
+        anho = request.form["anho"]
+        tipo_plan = request.form["tipo_plani"]
+
+        if int(tipo_plan) == 1: 
+            cabecera, data, data_det, colums = Procesos.ver_para_planilla_materia(db,grado, profesor, materia, etapa, anho)
+            if not cabecera is None:
+                planilla_proc_detallado(cabecera, data, data_det, colums)
+                return redirect(url_for('descarga_planilla',filename=f"Planilla_{cabecera[2]}.xlsx"))
+            else:
+                err = {"title": "Error!",
+                    "detalle":  str("No hay procesos!")}
+                flash(err)
+        elif int(tipo_plan) == 2: 
+            cabecera, data_det, colums = Procesos.ver_para_planilla_grado(db,grado, profesor, materia, etapa, anho)
+            if not cabecera is None:
+                planilla_proc_grado(cabecera, data_det, colums)
+                return redirect(url_for('descarga_planilla',filename=f"Planilla_{cabecera[0]}.xlsx"))
+            else:
+                err = {"title": "Error!",
+                    "detalle":  str("No hay procesos!")}
+                flash(err)
+    data_sec = Grados.get_tabla_raw(db)
+    data_sec_2, data_sec_3 = Prof_materias.ver_raw(db)
+    return render_template('Tablas/planillas.html', title="Planillas", data_sec=data_sec, data_sec_2=data_sec_2, data_sec_3=data_sec_3)
+
 #------------------MISC.---------------------#
 
 @app.route('/profesores/legajo/dowload/<id>', methods=['GET', 'POST'])
@@ -1036,6 +1154,13 @@ def descarga_legajo(id):
 def descarga_anexo(id):
     data = Plan_diario.get_to_descargar(db, id)
     return convierte_64_a_img(data)
+
+@app.route('/<path:filename>', methods=['GET', 'POST'])
+@login_required
+def descarga_planilla(filename):
+    print(app.root_path)
+    full_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+    return send_from_directory(full_path,filename, as_attachment=True)
 
 #------------------ERRORES---------------------#
 
